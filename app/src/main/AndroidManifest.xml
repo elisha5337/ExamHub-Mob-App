@@ -12,6 +12,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EXamHubApp">
         <activity
+            android:name=".ExamEditor"
+            android:exported="false" />
+        <activity
+            android:name=".Exam"
+            android:exported="false" />
+        <activity
             android:name=".Home"
             android:exported="false" />
         <activity

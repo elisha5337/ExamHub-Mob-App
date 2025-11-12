@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:gravity="center_horizontal"
+    android:background="@color/main"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Exam">
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="40dp"
+        android:layout_margin="30dp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:text="Exam"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background"
+        android:paddingTop="20dp"
+        android:paddingHorizontal="20dp"
+        android:gravity="top|center_horizontal">
+
+        <LinearLayout
+            android:id="@+id/buttonL"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingVertical="10dp"
+            android:gravity="center"
+            android:layout_alignParentBottom="true">
+            <Button
+                android:id="@+id/submit"
+                android:background="@drawable/button_background"
+                android:layout_height="wrap_content"
+                android:textSize="20dp"
+                android:text="Submit"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:padding="10dp"
+                android:layout_width="match_parent"/>
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/list_item"
+            android:layout_width="match_parent"
+            android:dividerHeight="20dp"
+            android:divider="@color/transparent"
+            android:layout_above="@id/buttonL"
+            android:layout_height="match_parent"/>
+    </RelativeLayout>
+
+</LinearLayout>
