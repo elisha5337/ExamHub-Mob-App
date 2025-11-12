@@ -40,7 +40,7 @@ public class StartActivity extends AppCompatActivity {
             String selectedExamType = examTypeSpinner.getSelectedItem().toString();
             Toast.makeText(StartActivity.this, "Starting " + selectedExamType + " exam!", Toast.LENGTH_SHORT).show();
              // Pass the selected exam type to the MainActivity
-            Intent intent = new Intent(StartActivity.this, Signup.class);
+            Intent intent = new Intent(StartActivity.this, Home.class);
             intent.putExtra("EXAM_TYPE", selectedExamType);
             startActivity(intent);
         });

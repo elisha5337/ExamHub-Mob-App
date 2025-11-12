@@ -93,7 +93,7 @@ public class Signup extends AppCompatActivity {
         });
 
         login.setOnClickListener(v -> {
-            Intent i = new Intent(Signup.this, MainActivity.class);
+            Intent i = new Intent(Signup.this, Home.class);
             startActivity(i);
         });
     }
