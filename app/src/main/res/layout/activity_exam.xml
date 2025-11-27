@@ -47,18 +47,6 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/add_question_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_background"
-                android:textSize="20sp"
-                android:text="Add Question"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:padding="10dp"
-                android:layout_marginBottom="10dp" />
-
-            <Button
                 android:id="@+id/submit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -68,6 +56,14 @@
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:padding="10dp" />
+
+            <Button
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:text="Back" />
 
         </LinearLayout>
     </RelativeLayout>

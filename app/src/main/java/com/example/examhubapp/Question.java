@@ -9,16 +9,20 @@ public class Question implements Serializable {
     private String option3;
     private String option4;
     private String correctAnswer;
+    private String description;
+    private String courseType; // New field for the course type
     private String selectAnswer;
 
-    // Constructor
-    public Question(String question, String option1, String option2, String option3, String option4, String correctAnswer) {
+    // Updated Constructor
+    public Question(String question, String option1, String option2, String option3, String option4, String correctAnswer, String description, String courseType) {
         this.question = question;
         this.option1 = option1;
         this.option2 = option2;
         this.option3 = option3;
         this.option4 = option4;
         this.correctAnswer = correctAnswer;
+        this.description = description;
+        this.courseType = courseType;
         this.selectAnswer = null; // Initialize to null
     }
 
@@ -45,6 +49,14 @@ public class Question implements Serializable {
 
     public String getCorrectAnswer() {
         return correctAnswer;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getCourseType() {
+        return courseType;
     }
 
     public String getSelectAnswer() {
@@ -76,6 +88,14 @@ public class Question implements Serializable {
         this.correctAnswer = correctAnswer;
     }
 
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setCourseType(String courseType) {
+        this.courseType = courseType;
+    }
+
     public void setSelectAnswer(String selectAnswer) {
         this.selectAnswer = selectAnswer;
     }
@@ -99,6 +119,8 @@ public class Question implements Serializable {
                 ", option3='" + option3 + '\'' +
                 ", option4='" + option4 + '\'' +
                 ", correctAnswer='" + correctAnswer + '\'' +
+                ", description='" + description + '\'' +
+                ", courseType='" + courseType + '\'' +
                 ", selectAnswer='" + selectAnswer + '\'' +
                 '}';
     }

@@ -1,8 +1,8 @@
 package com.example.examhubapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -15,8 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Exam extends AppCompatActivity {
-
-    private static final int ADD_QUESTION_REQUEST = 1;
 
     private MyDatabaseHelper dbHelper;
     private List<Question> questions;
@@ -34,56 +32,64 @@ public class Exam extends AppCompatActivity {
         adapter = new QuestionAdapter(this, questions);
         listView.setAdapter(adapter);
 
-        Button addQuestionButton = findViewById(R.id.add_question_button);
-        addQuestionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Exam.this, AddQuestionActivity.class);
-                startActivityForResult(intent, ADD_QUESTION_REQUEST);
-            }
-        });
-
         Button submitButton = findViewById(R.id.submit);
+        Button backButton = findViewById(R.id.back_button);
+        backButton.setOnClickListener(v -> {
+            Intent intent = new Intent(Exam.this, Home.class);
+            startActivity(intent);
+        });
         submitButton.setOnClickListener(v -> handleSubmit());
 
         loadQuestions();
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == ADD_QUESTION_REQUEST && resultCode == RESULT_OK && data != null) {
-            Question newQuestion = (Question) data.getSerializableExtra(AddQuestionActivity.EXTRA_NEW_QUESTION);
-            if (newQuestion != null) {
-                dbHelper.insertQuestion(newQuestion);
-                loadQuestions(); // Refresh the list
-                Toast.makeText(this, "Question added successfully!", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
     private void loadQuestions() {
-        dbHelper.getAllQuestionsAsync(new MyDatabaseHelper.DatabaseCallback<List<Question>>() {
-            @Override
-            public void onComplete(List<Question> result) {
-                questions.clear();
-                questions.addAll(result);
-                adapter.notifyDataSetChanged();
-            }
-        });
+        String courseType = getIntent().getStringExtra("EXAM_TYPE");
+        if (courseType != null) {
+            dbHelper.getQuestionsByCourseAsync(courseType, new MyDatabaseHelper.DatabaseCallback<List<Question>>() {
+                @Override
+                public void onComplete(List<Question> result) {
+                    questions.clear();
+                    questions.addAll(result);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        } else {
+            dbHelper.getAllQuestionsAsync(new MyDatabaseHelper.DatabaseCallback<List<Question>>() {
+                @Override
+                public void onComplete(List<Question> result) {
+                    questions.clear();
+                    questions.addAll(result);
+                    adapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
 
     private void handleSubmit() {
         int score = 0;
+        StringBuilder resultsBuilder = new StringBuilder();
         for (Question question : questions) {
             if (question.isAnswerCorrect()) {
                 score++;
             }
+            resultsBuilder.append("Question: ").append(question.getQuestion()).append("\n");
+            resultsBuilder.append("Your Answer: ").append(question.getSelectAnswer()).append("\n");
+            resultsBuilder.append("Correct Answer: ").append(question.getCorrectAnswer()).append("\n");
+            resultsBuilder.append("Description: ").append(question.getDescription()).append("\n\n");
         }
+
+        // Save the score
+        SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        int totalScore = sharedPreferences.getInt("total_score", 0);
+        totalScore += score;
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("total_score", totalScore);
+        editor.apply();
 
         new AlertDialog.Builder(this)
                 .setTitle("Exam Results")
-                .setMessage("You scored " + score + " out of " + questions.size())
+                .setMessage("You scored " + score + " out of " + questions.size() + "\n\n" + resultsBuilder.toString())
                 .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                 .show();
     }

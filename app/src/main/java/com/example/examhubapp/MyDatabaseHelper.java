@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "mydatabase.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 5; // Incremented database version
 
     private static final ExecutorService databaseExecutor = Executors.newSingleThreadExecutor();
 
@@ -38,7 +38,9 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
                 "option2 TEXT, " +
                 "option3 TEXT, " +
                 "option4 TEXT, " +
-                "correctAnswer TEXT)";
+                "correctAnswer TEXT, " +
+                "description TEXT, " +
+                "courseType TEXT)"; // Added courseType column
         db.execSQL(createTableSQL2);
     }
 
@@ -69,6 +71,23 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    public User getUserProfile(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {"fname", "lname", "email"};
+        String selection = "email = ?";
+        String[] selectionArgs = {email};
+        try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
+            if (cursor.moveToFirst()) {
+                return new User(
+                        cursor.getString(cursor.getColumnIndexOrThrow("fname")),
+                        cursor.getString(cursor.getColumnIndexOrThrow("lname")),
+                        cursor.getString(cursor.getColumnIndexOrThrow("email"))
+                );
+            }
+        }
+        return null;
+    }
+
     public String getUserFirstName(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
         String[] columns = {"fname"};
@@ -91,6 +110,8 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         values.put("option3", question.getOption3());
         values.put("option4", question.getOption4());
         values.put("correctAnswer", question.getCorrectAnswer());
+        values.put("description", question.getDescription());
+        values.put("courseType", question.getCourseType()); // Added courseType
         db.insert("questions", null, values);
     }
 
@@ -106,7 +127,9 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
                             cursor.getString(cursor.getColumnIndexOrThrow("option2")),
                             cursor.getString(cursor.getColumnIndexOrThrow("option3")),
                             cursor.getString(cursor.getColumnIndexOrThrow("option4")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer"))
+                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
                     );
                     questions.add(question);
                 } while (cursor.moveToNext());
@@ -119,6 +142,39 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         Handler mainThreadHandler = new Handler(Looper.getMainLooper());
         databaseExecutor.execute(() -> {
             List<Question> questions = getAllQuestions();
+            mainThreadHandler.post(() -> callback.onComplete(questions));
+        });
+    }
+
+    public List<Question> getQuestionsByCourse(String courseType) {
+        List<Question> questions = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selection = "courseType = ?";
+        String[] selectionArgs = {courseType};
+        try (Cursor cursor = db.query("questions", null, selection, selectionArgs, null, null, null)) {
+            if (cursor.moveToFirst()) {
+                do {
+                    Question question = new Question(
+                            cursor.getString(cursor.getColumnIndexOrThrow("question")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option1")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option2")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option3")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option4")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
+                    );
+                    questions.add(question);
+                } while (cursor.moveToNext());
+            }
+        }
+        return questions;
+    }
+
+    public void getQuestionsByCourseAsync(String courseType, DatabaseCallback<List<Question>> callback) {
+        Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+        databaseExecutor.execute(() -> {
+            List<Question> questions = getQuestionsByCourse(courseType);
             mainThreadHandler.post(() -> callback.onComplete(questions));
         });
     }

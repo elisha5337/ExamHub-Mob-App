@@ -1,7 +1,12 @@
 package com.example.examhubapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -11,7 +16,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import java.util.List;
@@ -19,6 +29,7 @@ import java.util.List;
 public class Home extends AppCompatActivity {
     private HomeViewModel homeViewModel;
     private Spinner examTypeSpinner;
+    private TextView totalPoints;
     private static final String EXAM_TYPE_KEY = "EXAM_TYPE";
 
     @Override
@@ -27,15 +38,23 @@ public class Home extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        ViewCompat.setOnApplyWindowInsetsListener(toolbar, (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(v.getPaddingLeft(), systemBars.top, v.getPaddingRight(), v.getPaddingBottom());
+            return insets;
+        });
+
         // Initialize UI components
         TextView name = findViewById(R.id.name);
         TextView totalQuestionsTextView = findViewById(R.id.totalQuestions);
-        TextView totalPoints = findViewById(R.id.totalPoints);
+        totalPoints = findViewById(R.id.totalPoints);
         Button startQuiz = findViewById(R.id.startQuiz);
         Button create = findViewById(R.id.create);
         RelativeLayout solvedQuizesLayout = findViewById(R.id.solvedQuizesLayout);
         RelativeLayout yourQuizes = findViewById(R.id.yourQuizes);
-        ImageView signout = findViewById(R.id.signout);
         TextView signup = findViewById(R.id.signup);
         examTypeSpinner = findViewById(R.id.examTypeSpinner);
 
@@ -57,6 +76,19 @@ public class Home extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         examTypeSpinner.setAdapter(adapter);
 
+        examTypeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedCourse = parent.getItemAtPosition(position).toString();
+                homeViewModel.loadQuestionsByCourse(selectedCourse);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
         // Retrieve user data from Intent
         Intent intent = getIntent();
         String firstName = intent.getStringExtra("FIRST_NAME");
@@ -68,8 +100,8 @@ public class Home extends AppCompatActivity {
             name.setText("Welcome, Guest");
         }
 
-        // Set total points (this could be retrieved from a database)
-        totalPoints.setText("100"); // Example static data
+        // Load total points
+        loadTotalPoints();
 
         // Set up button click listeners
         startQuiz.setOnClickListener(v -> {
@@ -85,7 +117,7 @@ public class Home extends AppCompatActivity {
 
         create.setOnClickListener(v -> {
             // Start the create quiz activity
-            Intent createIntent = new Intent(Home.this, Exam.class);
+            Intent createIntent = new Intent(Home.this, AddQuestionActivity.class);
             startActivity(createIntent);
         });
 
@@ -99,18 +131,47 @@ public class Home extends AppCompatActivity {
             Toast.makeText(Home.this, "Showing your quizzes", Toast.LENGTH_SHORT).show();
         });
 
-        signout.setOnClickListener(v -> {
-            // Handle sign out logic (e.g., clear user session, return to login screen)
-            Toast.makeText(Home.this, "Signed out successfully", Toast.LENGTH_SHORT).show();
-            Intent signOutIntent = new Intent(Home.this, LoginActivity.class);
-            startActivity(signOutIntent);
-            finish(); // Close the Home activity
-        });
-
         signup.setOnClickListener(v -> {
             // Redirect to signup activity if needed
             Intent signupIntent = new Intent(Home.this, Signup.class);
             startActivity(signupIntent);
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.home_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_profile) {
+            Intent intent = new Intent(this, ProfileActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (itemId == R.id.action_about) {
+            Intent intent = new Intent(this, AboutActivity.class);
+            startActivity(intent);
+            return true;
+        } else if (itemId == R.id.action_contact_me) {
+            Intent intent = new Intent(this, ContactMeActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadTotalPoints();
+    }
+
+    private void loadTotalPoints() {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        int totalScore = sharedPreferences.getInt("total_score", 0);
+        totalPoints.setText(String.valueOf(totalScore));
     }
 }

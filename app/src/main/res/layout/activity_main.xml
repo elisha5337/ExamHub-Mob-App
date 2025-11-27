@@ -9,7 +9,7 @@
     android:background="@color/main"
     android:gravity="top|center_horizontal"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".LoginActivity">
 
     <TextView
         android:layout_width="match_parent"
@@ -28,54 +28,33 @@
         android:orientation="vertical"
         android:gravity="top|center_horizontal">
 
+
         <EditText
             android:id="@+id/email"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:padding="10dp"
-            android:background="@drawable/grey_edit"
-            android:imeOptions="actionDone"
-            android:inputType="textEmailAddress"
-            android:layout_marginTop="60dp"
             android:hint="Email"
-            android:textColor="@color/black"/>
+            android:inputType="textEmailAddress" />
 
         <EditText
             android:id="@+id/password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
-            android:padding="10dp"
-            android:background="@drawable/grey_edit"
-            android:imeOptions="actionDone"
-            android:inputType="textPassword"
-            android:layout_marginTop="20dp"
             android:hint="Password"
-            android:textColor="@color/black"/>
+            android:inputType="textPassword" />
 
         <Button
-            android:id="@+id/login"
-            android:layout_width="match_parent"
+            android:id="@+id/loginButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:layout_marginTop="50dp"
-            android:textStyle="bold"
-            android:textAllCaps="false"
-            android:textSize="20sp"
-            android:background="@drawable/button_background"
-            android:text="Login"/>
+            android:text="Login" />
 
         <TextView
-            android:id="@+id/create"
-            android:layout_width="match_parent"
+            android:id="@+id/create_account"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create New Account"
-            android:layout_marginTop="20dp"
-            android:gravity="center"
-            android:textColor="@color/main"
-            android:textStyle="bold"
-            android:contentDescription="create_account_desc"/> <!-- Add content description -->
-
+            android:layout_marginTop="16dp"
+            android:text="Don't have an account? Create one"
+            android:textColor="@android:color/holo_blue_dark" />
     </LinearLayout>
 </LinearLayout>

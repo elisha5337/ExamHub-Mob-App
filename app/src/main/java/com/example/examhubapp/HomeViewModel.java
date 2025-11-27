@@ -22,4 +22,8 @@ public class HomeViewModel extends ViewModel {
     private void loadQuestions() {
         dbHelper.getAllQuestionsAsync(questions::postValue);
     }
+
+    public void loadQuestionsByCourse(String courseType) {
+        dbHelper.getQuestionsByCourseAsync(courseType, questions::postValue);
+    }
 }
