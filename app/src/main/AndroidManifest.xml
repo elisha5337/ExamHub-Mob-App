@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.EXamHubApp">
         <activity
+            android:name=".AddQuestionActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Login"
+            android:exported="false" />
+        <activity
             android:name=".ExamEditor"
             android:exported="false" />
         <activity

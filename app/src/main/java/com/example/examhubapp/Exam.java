@@ -1,112 +1,90 @@
 package com.example.examhubapp;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ListView;
-import android.widget.RadioButton;
-import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
-import java.security.PublicKey;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Exam extends AppCompatActivity {
 
-    private Question[] data;
-    private String quizId;
+    private static final int ADD_QUESTION_REQUEST = 1;
+
+    private MyDatabaseHelper dbHelper;
+    private List<Question> questions;
+    private QuestionAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_exam);
 
-        ListView listView=findViewById(R.id.list_item);
-        Button submit=findViewById(R.id.submit);
-        TextView title=findViewById(R.id.title);
+        dbHelper = new MyDatabaseHelper(this);
+        questions = new ArrayList<>();
 
+        ListView listView = findViewById(R.id.list_item);
+        adapter = new QuestionAdapter(this, questions);
+        listView.setAdapter(adapter);
 
+        Button addQuestionButton = findViewById(R.id.add_question_button);
+        addQuestionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Exam.this, AddQuestionActivity.class);
+                startActivityForResult(intent, ADD_QUESTION_REQUEST);
+            }
+        });
 
+        Button submitButton = findViewById(R.id.submit);
+        submitButton.setOnClickListener(v -> handleSubmit());
 
+        loadQuestions();
     }
 
-    public class ListAdapter extends BaseAdapter {
-        Question[] arr;
-        ListAdapter(Question[] arr2){
-            arr=arr2;
-        }
-        @Override
-        public int getCount(){
-            return arr.length;
-        }
-        @Override
-        public Object getItem(int i){
-            return arr[i];
-        }
-        @Override
-        public long getItemId(int i){
-            return i;
-        }
-        @Override
-        public View getView(int i, View view, ViewGroup viewGroup){
-            LayoutInflater inflater=getLayoutInflater();
-            View v=inflater.inflate(R.layout.question,null);
-            TextView question=findViewById(R.id.question);
-            RadioButton option1=findViewById(R.id.option1);
-            RadioButton option2=findViewById(R.id.option2);
-            RadioButton option3=findViewById(R.id.option3);
-            RadioButton option4=findViewById(R.id.option4);
-
-            question.setText(data[i].getQuestion());
-            option1.setText(data[i].getOption1());
-            option2.setText(data[i].getOption2());
-            option3.setText(data[i].getOption3());
-            option4.setText(data[i].getOption4());
-
-            option1.setOnCheckedChangeListener((compoundButton,b)->{
-                if(b){data[i].setSelectAnswer("1");}
-            });
-
-            option2.setOnCheckedChangeListener((compoundButton,b)->{
-                if(b){data[i].setSelectAnswer("2");}
-            });
-
-            option3.setOnCheckedChangeListener((compoundButton,b)->{
-                if(b){data[i].setSelectAnswer("3");}
-            });
-
-            option4.setOnCheckedChangeListener((compoundButton,b)->{
-                if(b){data[i].setSelectAnswer("4");}
-            });
-
-            switch (data[i].getCorrectAnswer()){
-                case "1":
-                    option1.setChecked(true);
-                    break;
-                case "2":
-                    option2.setChecked(true);
-                    break;
-                case "3":
-                    option3.setChecked(true);
-                    break;
-                case "4":
-                    option4.setChecked(true);
-                    break;
-
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ADD_QUESTION_REQUEST && resultCode == RESULT_OK && data != null) {
+            Question newQuestion = (Question) data.getSerializableExtra(AddQuestionActivity.EXTRA_NEW_QUESTION);
+            if (newQuestion != null) {
+                dbHelper.insertQuestion(newQuestion);
+                loadQuestions(); // Refresh the list
+                Toast.makeText(this, "Question added successfully!", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
 
+    private void loadQuestions() {
+        dbHelper.getAllQuestionsAsync(new MyDatabaseHelper.DatabaseCallback<List<Question>>() {
+            @Override
+            public void onComplete(List<Question> result) {
+                questions.clear();
+                questions.addAll(result);
+                adapter.notifyDataSetChanged();
+            }
+        });
+    }
 
-            return null;
+    private void handleSubmit() {
+        int score = 0;
+        for (Question question : questions) {
+            if (question.isAnswerCorrect()) {
+                score++;
+            }
         }
 
+        new AlertDialog.Builder(this)
+                .setTitle("Exam Results")
+                .setMessage("You scored " + score + " out of " + questions.size())
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 }

@@ -9,15 +9,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Exam">
+
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="40dp"
-        android:layout_margin="30dp"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:text="Exam"/>
+        android:textSize="40sp"
+    android:layout_margin="30dp"
+    android:textStyle="bold"
+    android:textColor="@color/white"
+    android:text="Exam"
+    android:contentDescription="exam_title" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -27,32 +29,46 @@
         android:paddingHorizontal="20dp"
         android:gravity="top|center_horizontal">
 
+        <ListView
+            android:id="@+id/list_item"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:dividerHeight="20dp"
+            android:divider="@color/transparent"
+            android:layout_above="@id/buttonL"/>
+
         <LinearLayout
             android:id="@+id/buttonL"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingVertical="10dp"
             android:gravity="center"
-            android:layout_alignParentBottom="true">
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical">
+
             <Button
-                android:id="@+id/submit"
-                android:background="@drawable/button_background"
+                android:id="@+id/add_question_button"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="20dp"
-                android:text="Submit"
+                android:background="@drawable/button_background"
+                android:textSize="20sp"
+                android:text="Add Question"
                 android:textAllCaps="false"
                 android:textColor="@color/white"
                 android:padding="10dp"
-                android:layout_width="match_parent"/>
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/submit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/button_background"
+                android:textSize="20sp"
+            android:text="Submit"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:padding="10dp" />
+
         </LinearLayout>
-
-        <ListView
-            android:id="@+id/list_item"
-            android:layout_width="match_parent"
-            android:dividerHeight="20dp"
-            android:divider="@color/transparent"
-            android:layout_above="@id/buttonL"
-            android:layout_height="match_parent"/>
     </RelativeLayout>
-
 </LinearLayout>

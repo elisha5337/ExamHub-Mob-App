@@ -1,7 +1,9 @@
 package com.example.examhubapp;
 
 import android.app.ProgressDialog;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,26 +12,18 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
 
 public class Signup extends AppCompatActivity {
-
-    private FirebaseAuth auth;
-    private DatabaseReference databaseReference;
+    private MyDatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_signup);
+
+        dbHelper = new MyDatabaseHelper(this);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         Button signup = findViewById(R.id.signup);
         TextView login = findViewById(R.id.login);
@@ -41,59 +35,51 @@ public class Signup extends AppCompatActivity {
 
         signup.setOnClickListener(view -> {
             ProgressDialog progressDialog = new ProgressDialog(Signup.this);
-            progressDialog.setMessage("loading...");
+            progressDialog.setMessage("Loading...");
             progressDialog.setCancelable(false);
             progressDialog.show();
 
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String pass = password.getText().toString();
-                    String confirmpass = confirmPassword.getText().toString();
-                    String em = email.getText().toString();
+            String firstName = fname.getText().toString().trim();
+            String lastName = lname.getText().toString().trim();
+            String em = email.getText().toString().trim();
+            String pass = password.getText().toString();
+            String confirmpass = confirmPassword.getText().toString();
 
-                    if (!pass.equals(confirmpass)) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                confirmPassword.setError("password does not match");
-                                progressDialog.dismiss();
-                            }
-                        });
-                        return; // Added return here to exit if passwords do not match
-                    }
+            // Input validation
+            if (firstName.isEmpty() || lastName.isEmpty() || em.isEmpty() || pass.isEmpty() || confirmpass.isEmpty()) {
+                Toast.makeText(Signup.this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
+                progressDialog.dismiss();
+                return;
+            }
 
-                    auth.createUserWithEmailAndPassword(em, pass).addOnCompleteListener(Signup.this,
-                            (OnCompleteListener<AuthResult>) task -> {
-                                if (task.isSuccessful()) {
-                                    FirebaseUser user = auth.getCurrentUser();
-                                    DatabaseReference reference = databaseReference.child("users").child(user.getUid());
-                                    reference.child("fname").setValue(fname.getText().toString());
-                                    reference.child("lname").setValue(lname.getText().toString());
+            if (!pass.equals(confirmpass)) {
+                confirmPassword.setError(getString(R.string.password_mismatch));
+                progressDialog.dismiss();
+                return;
+            }
 
-                                    runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            progressDialog.dismiss();
-                                            Intent i = new Intent(Signup.this, Home.class);
-                                            i.putExtra("User UID", user.getUid());
-                                            startActivity(i);
-                                            finish();
-                                        }
-                                    });
-                                }else{
-                                    Toast.makeText(Signup.this,"operation failed.", Toast.LENGTH_SHORT).show();
-                                    progressDialog.dismiss();
+            // Store user data in the database
+            ContentValues values = new ContentValues();
+            values.put("fname", firstName);
+            values.put("lname", lastName);
+            values.put("email", em);
+            values.put("password", pass); // Consider hashing passwords before storing
+            long newRowId = db.insert("registration", null, values);
 
-                                }
-                            });
-                }
-            });
-            thread.start(); // Don't forget to start the thread
+            if (newRowId != -1) {
+                Toast.makeText(Signup.this, "Data saved successfully!", Toast.LENGTH_SHORT).show();
+                // Optionally, redirect to login or main activity after successful signup
+                Intent intent = new Intent(Signup.this, MainActivity.class);
+                startActivity(intent);
+                finish(); // Close the signup activity
+            } else {
+                Toast.makeText(Signup.this, "Error saving data.", Toast.LENGTH_SHORT).show();
+            }
+            progressDialog.dismiss();
         });
 
         login.setOnClickListener(v -> {
-            Intent i = new Intent(Signup.this, Home.class);
+            Intent i = new Intent(Signup.this, MainActivity.class); // Assuming there's a Login activity
             startActivity(i);
         });
     }

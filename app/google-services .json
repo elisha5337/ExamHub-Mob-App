@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "986007096645",
+    "firebase_url": "https://examhub-mob-app-default-rtdb.firebaseio.com",
+    "project_id": "examhub-mob-app",
+    "storage_bucket": "examhub-mob-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986007096645:android:41efd7579be5fe0d9d822c",
+        "android_client_info": {
+          "package_name": "ExamHub.Mob.App"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiumrbnBf0wTgBstlOtyOg6AsbZXUqP7A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:986007096645:android:d6963f49dc6c18df9d822c",
+        "android_client_info": {
+          "package_name": "com.example.examhubapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiumrbnBf0wTgBstlOtyOg6AsbZXUqP7A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

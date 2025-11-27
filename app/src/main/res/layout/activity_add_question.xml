@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".AddQuestionActivity">
+
+    <EditText
+        android:id="@+id/question_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter the question" />
+
+    <EditText
+        android:id="@+id/option1_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter option 1" />
+
+    <EditText
+        android:id="@+id/option2_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter option 2" />
+
+    <EditText
+        android:id="@+id/option3_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter option 3" />
+
+    <EditText
+        android:id="@+id/option4_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter option 4" />
+
+    <EditText
+        android:id="@+id/correct_answer_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter the correct answer" />
+
+    <Button
+        android:id="@+id/save_question_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Save Question" />
+
+</LinearLayout>

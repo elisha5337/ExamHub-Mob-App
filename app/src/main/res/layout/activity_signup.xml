@@ -8,7 +8,7 @@
     android:background="@color/main"
     android:gravity="top|center_horizontal"
     android:orientation="vertical"
-    tools:context=".MainActivity">
+    tools:context=".Signup">
 
     <TextView
         android:layout_width="match_parent"
@@ -17,7 +17,8 @@
         android:text="Create New Account"
         android:textColor="@color/white"
         android:textSize="38sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:contentDescription="@string/create_account_label" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -36,7 +37,8 @@
             android:imeOptions="actionDone"
             android:padding="10dp"
             android:textColor="@color/black"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:contentDescription="@string/first_name_hint" />
 
         <EditText
             android:id="@+id/lname"
@@ -44,13 +46,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:background="@drawable/grey_edit"
-            android:hint="Enter you last name"
+            android:hint="Enter your last name"
             android:imeOptions="actionDone"
-            android:inputType="textPassword"
             android:padding="10dp"
             android:textColor="@color/black"
             android:textSize="20sp"
-           />
+            android:contentDescription="@string/last_name_hint" />
 
         <EditText
             android:id="@+id/email"
@@ -60,7 +61,8 @@
             android:background="@color/grey"
             android:hint="Enter your email"
             android:padding="10dp"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:contentDescription="@string/email_hint" />
 
         <EditText
             android:id="@+id/password"
@@ -73,7 +75,8 @@
             android:inputType="textPassword"
             android:padding="10dp"
             android:textColor="@color/black"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:contentDescription="@string/password_hint" />
 
         <EditText
             android:id="@+id/confirmPassword"
@@ -81,12 +84,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:background="@drawable/grey_edit"
-            android:hint="confirm password"
+            android:hint="Confirm password"
             android:imeOptions="actionDone"
-            android:inputType="textEmailAddress"
+            android:inputType="textPassword"
             android:padding="10dp"
             android:textColor="@color/black"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:contentDescription="@string/confirm_password_hint" />
 
         <Button
             android:id="@+id/signup"
@@ -98,7 +102,8 @@
             android:text="Signup"
             android:textAllCaps="false"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:contentDescription="@string/signup_button" />
 
         <TextView
             android:id="@+id/login"
@@ -108,8 +113,10 @@
             android:gravity="center"
             android:text="Already have an account?"
             android:textColor="@color/main"
-            android:textStyle="bold" />
-
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/login_prompt" />
 
     </LinearLayout>
 

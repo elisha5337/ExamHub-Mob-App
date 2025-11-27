@@ -1,6 +1,8 @@
 package com.example.examhubapp;
 
-public class Question {
+import java.io.Serializable;
+
+public class Question implements Serializable {
     private String question;
     private String option1;
     private String option2;
@@ -9,14 +11,47 @@ public class Question {
     private String correctAnswer;
     private String selectAnswer;
 
-    public String getQuestion(){return question;};
-    public String getOption1(){return option1;};
-    public String getOption2(){return option2;};
-    public String getOption3(){return option3;};
-    public String getOption4(){return option4;};
-    public String getCorrectAnswer(){return correctAnswer;};
-    public String getSelectAnswer(){return selectAnswer;};
+    // Constructor
+    public Question(String question, String option1, String option2, String option3, String option4, String correctAnswer) {
+        this.question = question;
+        this.option1 = option1;
+        this.option2 = option2;
+        this.option3 = option3;
+        this.option4 = option4;
+        this.correctAnswer = correctAnswer;
+        this.selectAnswer = null; // Initialize to null
+    }
 
+    // Getters
+    public String getQuestion() {
+        return question;
+    }
+
+    public String getOption1() {
+        return option1;
+    }
+
+    public String getOption2() {
+        return option2;
+    }
+
+    public String getOption3() {
+        return option3;
+    }
+
+    public String getOption4() {
+        return option4;
+    }
+
+    public String getCorrectAnswer() {
+        return correctAnswer;
+    }
+
+    public String getSelectAnswer() {
+        return selectAnswer;
+    }
+
+    // Setters
     public void setQuestion(String question) {
         this.question = question;
     }
@@ -28,11 +63,13 @@ public class Question {
     public void setOption2(String option2) {
         this.option2 = option2;
     }
-    public void setOption3(String option3){
-        this.option3=option3;
+
+    public void setOption3(String option3) {
+        this.option3 = option3;
     }
-    public void setOption4(String option4){
-        this.option4=option4;
+
+    public void setOption4(String option4) {
+        this.option4 = option4;
     }
 
     public void setCorrectAnswer(String correctAnswer) {
@@ -43,7 +80,26 @@ public class Question {
         this.selectAnswer = selectAnswer;
     }
 
+    // Method to check if the selected answer is correct
+    public boolean isAnswerCorrect() {
+        return correctAnswer.equals(selectAnswer);
+    }
 
+    // Method to display the question and options
+    public String displayQuestion() {
+        return question + "\n1. " + option1 + "\n2. " + option2 + "\n3. " + option3 + "\n4. " + option4;
+    }
 
-
+    @Override
+    public String toString() {
+        return "Question{" +
+                "question='" + question + '\'' +
+                ", option1='" + option1 + '\'' +
+                ", option2='" + option2 + '\'' +
+                ", option3='" + option3 + '\'' +
+                ", option4='" + option4 + '\'' +
+                ", correctAnswer='" + correctAnswer + '\'' +
+                ", selectAnswer='" + selectAnswer + '\'' +
+                '}';
+    }
 }

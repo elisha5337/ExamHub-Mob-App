@@ -1,5 +1,7 @@
 package com.example.examhubapp;
-
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,13 +15,12 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    private FirebaseAuth auth;
+
+    private MyDatabaseHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,71 +28,61 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        EditText email = findViewById(R.id.email);
-        EditText password = findViewById(R.id.password);
-        TextView signup=findViewById(R.id.create);
-        Button login = findViewById(R.id.login);
-
-        auth =FirebaseAuth.getInstance();
-
-        FirebaseUser user=auth.getCurrentUser();
-        if(user!=null){
-            Intent i =new Intent(MainActivity.this,Home.class);
-            i.putExtra("User UID",user.getUid());
-            startActivity(i);
-            finish();
+        dbHelper=new MyDatabaseHelper(this);
+        SQLiteDatabase db=dbHelper.getWritableDatabase();
+        ContentValues values=new ContentValues();
+        values.put("name","John Doe");
+        db.insert("my_table",null,values);
+        Cursor cursor=db.query("my_table",null,null,null,null,null,null);
+        while(cursor.moveToNext()){
+            int id=cursor.getInt(cursor.getColumnIndex("id"));
+            String name=cursor.getString(cursor.getColumnIndex("name"));
+            System.out.println("ID: "+id+", Name: "+name);
         }
+        cursor.close();
+
+        EditText emailEditText = findViewById(R.id.email);
+        EditText passwordEditText = findViewById(R.id.password);
+        TextView signupTextView = findViewById(R.id.create);
+        Button loginButton = findViewById(R.id.login);
+
+        loginButton.setOnClickListener(v -> {
+            String email = emailEditText.getText().toString().trim();
+            String password = passwordEditText.getText().toString().trim();
 
 
-        login.setOnClickListener(v->{
-
-            ProgressDialog progressDialog=new ProgressDialog(MainActivity.this);
-            progressDialog.setMessage("Loading...");
-            progressDialog.setCancelable(false);
-            progressDialog.show();
-
-            Thread thread=new Thread(new Runnable(){
-                @Override
-                public void run(){
-                    String em=email.getText().toString();
-                    String pass=password.getText().toString();
-                    auth.signInWithEmailAndPassword(em,pass).addOnCompleteListener(MainActivity.this,
-                            (OnCompleteListener<AuthResult>) task->{
-                        if(task.isSuccessful()){
-                            FirebaseUser user=auth.getCurrentUser();
-                            runOnUiThread(new Runnable(){
-                                @Override
-                                public void run(){
-                                    progressDialog.dismiss();
-                                    Intent i =new Intent(MainActivity.this,Home.class);
-                                    i.putExtra("User UID",user.getUid());
-                                    startActivity(i);
-                                    finish();
-                                }
-                            });
-                        }else{
-                            Toast.makeText(MainActivity.this,"operation failed.", Toast.LENGTH_SHORT).show();
-                            runOnUiThread(new Runnable(){
-                                @Override
-                                public void run(){
-                                    progressDialog.dismiss();
-                                }
-                            });
-                        }
-
-                    });
-                }
-            });
-            thread.start();
         });
 
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent i=new Intent(MainActivity.this,Signup.class);
-                startActivity(i);
-                finish();
-            }
+        // Signup button click event
+        signupTextView.setOnClickListener(v -> {
+            Intent signupIntent = new Intent(MainActivity.this, Signup.class);
+            startActivity(signupIntent);
         });
+    }
+
+    private void navigateToHome(String userId) {
+        Intent homeIntent = new Intent(MainActivity.this, Home.class);
+        homeIntent.putExtra("User UID", userId);
+        startActivity(homeIntent);
+        finish();
+    }
+
+    private ProgressDialog createProgressDialog() {
+        ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCancelable(false);
+        return progressDialog;
+    }
+
+    private boolean validateInputs(String email, String password) {
+        if (email.isEmpty()) {
+            Toast.makeText(this, "R.string.email_required", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if (password.isEmpty()) {
+            Toast.makeText(this, "R.string.password_required", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
     }
 }

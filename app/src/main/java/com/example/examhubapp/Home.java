@@ -1,32 +1,25 @@
 package com.example.examhubapp;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import java.util.List;
 
 public class Home extends AppCompatActivity {
-    private String userId;
-    private String firstName;
+    private HomeViewModel homeViewModel;
+    private Spinner examTypeSpinner;
+    private static final String EXAM_TYPE_KEY = "EXAM_TYPE";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,77 +27,90 @@ public class Home extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
-        DatabaseReference database= FirebaseDatabase.getInstance().getReference();
-        ProgressDialog progressDialog=new ProgressDialog(Home.this);
-        progressDialog.setMessage("loading...");
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+        // Initialize UI components
+        TextView name = findViewById(R.id.name);
+        TextView totalQuestionsTextView = findViewById(R.id.totalQuestions);
+        TextView totalPoints = findViewById(R.id.totalPoints);
+        Button startQuiz = findViewById(R.id.startQuiz);
+        Button create = findViewById(R.id.create);
+        RelativeLayout solvedQuizesLayout = findViewById(R.id.solvedQuizesLayout);
+        RelativeLayout yourQuizes = findViewById(R.id.yourQuizes);
+        ImageView signout = findViewById(R.id.signout);
+        TextView signup = findViewById(R.id.signup);
+        examTypeSpinner = findViewById(R.id.examTypeSpinner);
 
-        Bundle b = getIntent().getExtras();
-        userId=b.getString("User UID");
+        // Initialize the database helper and ViewModel
+        MyDatabaseHelper dbHelper = new MyDatabaseHelper(this);
+        HomeViewModelFactory factory = new HomeViewModelFactory(dbHelper);
+        homeViewModel = new ViewModelProvider(this, factory).get(HomeViewModel.class);
 
-
-        TextView name=findViewById(R.id.name);
-        TextView totalQuestions=findViewById(R.id.totalQuestions);
-        TextView totalPoints=findViewById(R.id.totalPoints);
-        Button startQuiz=findViewById(R.id.startQuiz);
-        Button create=findViewById(R.id.create);
-
-        RelativeLayout solvedQuizesLayout=findViewById(R.id.solvedQuizesLayout);
-        RelativeLayout yourQuizes=findViewById(R.id.yourQuizes);
-
-
-        EditText quizId=findViewById(R.id.quizId);
-        EditText Title=findViewById(R.id.Title);
-        ImageView signout=findViewById(R.id.signout);
-
-        ValueEventListener listener=new ValueEventListener() {
-            @Override
-            public void onDataChange( @NonNull DataSnapshot snapshot) {
-                DataSnapshot userRef=snapshot.child("users").child(userId);
-                firstName=userRef.child("fname").getValue().toString();
-
-                if(userRef.hasChild("Total Points")){
-                    String totalPointsValue=userRef.child("Total Points").getValue().toString();
-                    int points=Integer.parseInt(totalPointsValue);
-                     totalPoints.setText(String.format("%03d",points));
-                }
-                if(userRef.hasChild("Total Questions")){
-                    String totalQuestionsValue=userRef.child("Total Questions").getValue().toString();
-                    int questions=Integer.parseInt(totalQuestionsValue);
-                    totalQuestions.setText(String.format("%03d",questions));
-                }
-                name.setText("Welcome "+firstName);
-                progressDialog.dismiss();
-
+        // Observe the questions LiveData
+        homeViewModel.getQuestions().observe(this, questions -> {
+            if (questions != null) {
+                totalQuestionsTextView.setText(String.valueOf(questions.size()));
             }
-            @Override
-            public void onCancelled(@NonNull DatabaseError error){
-                Toast.makeText(Home.this,"can't connect",Toast.LENGTH_SHORT).show();
-
-            }
-
-        };
-        signout.setOnClickListener(v->{
-            FirebaseAuth.getInstance().signOut();
-            Intent i= new Intent(Home.this,MainActivity.class);
-            startActivity(i);
-            finish();
         });
 
+        // Populate the spinner
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.exam_types, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        examTypeSpinner.setAdapter(adapter);
 
+        // Retrieve user data from Intent
+        Intent intent = getIntent();
+        String firstName = intent.getStringExtra("FIRST_NAME");
 
-
-
-
-
-
-        TextView signup=findViewById(R.id.signup);
-        signup.setOnClickListener(v->{
-            Intent i=new Intent(Home.this,Signup.class);
-            startActivity(i);
-        });
+        // Set the user's name in the TextView
+        if (firstName != null) {
+            name.setText("Welcome, " + firstName);
+        } else {
+            name.setText("Welcome, Guest");
         }
 
+        // Set total points (this could be retrieved from a database)
+        totalPoints.setText("100"); // Example static data
 
+        // Set up button click listeners
+        startQuiz.setOnClickListener(v -> {
+            String selectedExamType = examTypeSpinner.getSelectedItem() != null ? examTypeSpinner.getSelectedItem().toString() : null;
+            if (selectedExamType != null) {
+                Intent quizIntent = new Intent(Home.this, Exam.class);
+                quizIntent.putExtra(EXAM_TYPE_KEY, selectedExamType);
+                startActivity(quizIntent);
+            } else {
+                Toast.makeText(Home.this, "Please select an exam type.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        create.setOnClickListener(v -> {
+            // Start the create quiz activity
+            Intent createIntent = new Intent(Home.this, Exam.class);
+            startActivity(createIntent);
+        });
+
+        solvedQuizesLayout.setOnClickListener(v -> {
+            // Show solved quizzes (this could lead to another activity)
+            Toast.makeText(Home.this, "Showing solved quizzes", Toast.LENGTH_SHORT).show();
+        });
+
+        yourQuizes.setOnClickListener(v -> {
+            // Show user's quizzes (this could lead to another activity)
+            Toast.makeText(Home.this, "Showing your quizzes", Toast.LENGTH_SHORT).show();
+        });
+
+        signout.setOnClickListener(v -> {
+            // Handle sign out logic (e.g., clear user session, return to login screen)
+            Toast.makeText(Home.this, "Signed out successfully", Toast.LENGTH_SHORT).show();
+            Intent signOutIntent = new Intent(Home.this, LoginActivity.class);
+            startActivity(signOutIntent);
+            finish(); // Close the Home activity
+        });
+
+        signup.setOnClickListener(v -> {
+            // Redirect to signup activity if needed
+            Intent signupIntent = new Intent(Home.this, Signup.class);
+            startActivity(signupIntent);
+        });
     }
+}

@@ -25,6 +25,109 @@
             android:hint="Question"
             android:textStyle="bold"
             android:background="@color/transparent"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+                <RadioGroup
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/option1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:buttonTint="@color/main"
+                        android:textSize="20sp"
+                        android:paddingLeft="10dp"
+                         android:paddingVertical="10dp"/>
+                    <RadioButton
+                        android:id="@+id/option2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:buttonTint="@color/main"
+                        android:textSize="20sp"
+                        android:paddingLeft="10dp"
+                        android:paddingVertical="10dp"/>
+                    <RadioButton
+                        android:id="@+id/option3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:buttonTint="@color/main"
+                        android:textSize="20sp"
+                        android:paddingLeft="10dp"
+                        android:paddingVertical="10dp"/>
+                    <RadioButton
+                        android:id="@+id/option4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:buttonTint="@color/main"
+                        android:textSize="20sp"
+                        android:paddingLeft="10dp"
+                        android:paddingVertical="10dp"/>
+                </RadioGroup>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                >
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:textSize="20sp"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/black"
+                    android:hint="Choice1"
+                    android:layout_height="wrap_content"/>
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:textSize="20sp"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/black"
+                    android:hint="Choice2"
+                    android:layout_height="wrap_content"/>
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:textSize="20sp"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/black"
+                    android:hint="Choice3"
+                    android:layout_height="wrap_content"/>
+                <EditText
+                    android:layout_width="wrap_content"
+                    android:textSize="20sp"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/black"
+                    android:hint="Choice4"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+    <LinearLayout
+    android:id="@+id/newQuestion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/grey_backround"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="30dp"
+        android:padding="15dp"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:padding="10dp"
+            android:textColor="@color/main"
+            android:text="New Question"/>
+
     </LinearLayout>
 
 
