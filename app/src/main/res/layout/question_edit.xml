@@ -12,7 +12,7 @@
         android:layout_marginBottom="20dp"
         android:layout_marginTop="30dp"
         android:gravity="center"
-        android:background="@drawable/grey_backround">
+        android:background="@drawable/grey_background">
         <EditText
             android:id="@+id/question"
             android:layout_width="match_parent"
@@ -113,7 +113,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@drawable/grey_backround"
+        android:background="@drawable/grey_background"
         android:gravity="center"
         android:layout_marginBottom="20dp"
         android:layout_marginTop="30dp"

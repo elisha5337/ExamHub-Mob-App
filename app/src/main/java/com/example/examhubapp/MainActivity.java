@@ -1,88 +1,64 @@
 package com.example.examhubapp;
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.app.ProgressDialog;
+
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-
+import androidx.core.splashscreen.SplashScreen;
 
 public class MainActivity extends AppCompatActivity {
 
-
-    private MyDatabaseHelper dbHelper;
+    private static final long SESSION_EXPIRATION_TIME = 30 * 60 * 1000L; // 30 minutes
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // This MUST be called before super.onCreate()
+        SplashScreen.installSplashScreen(this);
+
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
 
-        dbHelper=new MyDatabaseHelper(this);
-        SQLiteDatabase db=dbHelper.getWritableDatabase();
-        ContentValues values=new ContentValues();
-        values.put("name","John Doe");
-        db.insert("my_table",null,values);
-        Cursor cursor=db.query("my_table",null,null,null,null,null,null);
-        while(cursor.moveToNext()){
-            int id=cursor.getInt(cursor.getColumnIndex("id"));
-            String name=cursor.getString(cursor.getColumnIndex("name"));
-            System.out.println("ID: "+id+", Name: "+name);
+        // No content view is needed for a dispatcher activity
+
+        if (isUserLoggedIn()) {
+            navigateToHome();
+        } else {
+            navigateToLogin();
         }
-        cursor.close();
-
-        EditText emailEditText = findViewById(R.id.email);
-        EditText passwordEditText = findViewById(R.id.password);
-        TextView signupTextView = findViewById(R.id.create);
-        Button loginButton = findViewById(R.id.login);
-
-        loginButton.setOnClickListener(v -> {
-            String email = emailEditText.getText().toString().trim();
-            String password = passwordEditText.getText().toString().trim();
-
-
-        });
-
-        // Signup button click event
-        signupTextView.setOnClickListener(v -> {
-            Intent signupIntent = new Intent(MainActivity.this, Signup.class);
-            startActivity(signupIntent);
-        });
     }
 
-    private void navigateToHome(String userId) {
-        Intent homeIntent = new Intent(MainActivity.this, Home.class);
-        homeIntent.putExtra("User UID", userId);
-        startActivity(homeIntent);
+    private boolean isUserLoggedIn() {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("is_logged_in", false);
+        long loginTimestamp = sharedPreferences.getLong("login_timestamp", 0);
+        long currentTime = System.currentTimeMillis();
+
+        // Check if the session has expired
+        if (isLoggedIn && (currentTime - loginTimestamp) < SESSION_EXPIRATION_TIME) {
+            return true; // User is logged in and session is valid
+        } else {
+            // Clear the session if expired
+            clearSession();
+            return false; // User is not logged in or session has expired
+        }
+    }
+
+    private void navigateToHome() {
+        Intent intent = new Intent(MainActivity.this, Home.class);
+        startActivity(intent);
         finish();
     }
 
-    private ProgressDialog createProgressDialog() {
-        ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-        progressDialog.setMessage("Loading...");
-        progressDialog.setCancelable(false);
-        return progressDialog;
+    private void navigateToLogin() {
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 
-    private boolean validateInputs(String email, String password) {
-        if (email.isEmpty()) {
-            Toast.makeText(this, "R.string.email_required", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        if (password.isEmpty()) {
-            Toast.makeText(this, "R.string.password_required", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        return true;
+    private void clearSession() {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear(); // Clear all session data
+        editor.apply();
     }
 }

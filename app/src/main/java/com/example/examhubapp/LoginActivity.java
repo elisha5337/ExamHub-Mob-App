@@ -54,13 +54,15 @@ public class LoginActivity extends AppCompatActivity {
 
         if (dbHelper.checkUser(email, password)) {
             String firstName = dbHelper.getUserFirstName(email);
+            boolean isAdmin = dbHelper.isUserAdmin(email);
 
             // Save session
             SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putBoolean("is_logged_in", true);
             editor.putString("first_name", firstName);
-            editor.putString("email", email); // Save the email
+            editor.putString("email", email);
+            editor.putBoolean("is_admin", isAdmin);
             editor.putLong("login_timestamp", System.currentTimeMillis()); // Save the login timestamp
             editor.apply();
 

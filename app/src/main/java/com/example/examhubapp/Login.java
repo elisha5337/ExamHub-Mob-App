@@ -11,13 +11,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 public class Login extends AppCompatActivity {
 
-    private FirebaseAuth auth;
-    private EditText emailEditText;
+     private EditText emailEditText;
     private EditText passwordEditText;
 
     @Override
@@ -25,8 +22,7 @@ public class Login extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        auth = FirebaseAuth.getInstance();
-        emailEditText = findViewById(R.id.email);
+         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         Button loginButton = findViewById(R.id.loginButton);
         TextView createAccountTextView = findViewById(R.id.create_account);
@@ -49,18 +45,6 @@ public class Login extends AppCompatActivity {
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        auth.signInWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
-            progressDialog.dismiss();
-            if (task.isSuccessful()) {
-                FirebaseUser user = auth.getCurrentUser();
-                Intent intent = new Intent(Login.this, Home.class);
-                intent.putExtra("User UID", user.getUid());
-                startActivity(intent);
-                finish();
-            } else {
-                Toast.makeText(Login.this, "Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void navigateToSignup() {

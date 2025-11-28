@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/main">
 
@@ -12,22 +12,22 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"/>
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <RelativeLayout
         android:id="@+id/image"
         android:layout_width="wrap_content"
-        android:layout_margin="30dp"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp">
 
         <TextView
             android:id="@+id/name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="30sp"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:text="Welcome" />
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:text="Welcome" />
     </RelativeLayout>
 
     <LinearLayout
@@ -43,7 +43,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="vertical">
 
@@ -59,7 +59,7 @@
                     android:padding="10dp"
                     android:gravity="center"
                     android:layout_marginBottom="20dp"
-                    android:background="@drawable/grey_backround"
+                    android:background="@drawable/grey_background"
                     android:orientation="vertical">
 
                     <TextView
@@ -67,11 +67,11 @@
                         android:layout_height="wrap_content"
                         android:text="Start quiz"
                         android:gravity="start"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"
-                    android:textColor="@color/main"
-                    android:padding="10dp"/>
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="10dp"
+                        android:textColor="@color/main"
+                        android:padding="10dp"/>
 
                     <RelativeLayout
                         android:id="@+id/yourQuizes"
@@ -82,11 +82,12 @@
                             android:id="@+id/startQuiz"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
                             android:textStyle="bold"
                             android:padding="20dp"
                             android:textAllCaps="false"
                             android:gravity="center"
-                            android:layout_marginLeft="10dp"
+                            android:layout_marginStart="10dp"
                             android:text="Start"
                             android:background="@drawable/button_background"
                             android:textColor="@color/white"/>
@@ -99,7 +100,7 @@
                             android:imeOptions="actionDone"
                             android:padding="17dp"
                             android:inputType="numberSigned"
-                            android:layout_toLeftOf="@id/startQuiz"
+                            android:layout_toStartOf="@+id/startQuiz"
                             android:hint="Quiz ID"
                             android:textColor="@color/black"
                             android:background="@drawable/white_edit"/>
@@ -111,13 +112,13 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="10dp"
-                    android:background="@drawable/grey_backround"
+                    android:background="@drawable/grey_background"
                     android:gravity="center"
                     android:layout_marginBottom="20dp">
 
                     <TextView
                         android:id="@+id/solvedQuizesText"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
                         android:text="Your solved quizzes"
@@ -129,10 +130,10 @@
                         android:layout_width="40dp"
                         android:layout_height="30dp"
                         android:scaleType="centerInside"
-                        android:layout_toRightOf="@id/solvedQuizesText"
+                        android:layout_toEndOf="@+id/solvedQuizesText"
                         android:layout_centerVertical="true"
                         android:src="@drawable/ic_launcher_foreground"
-                    android:contentDescription=" right_arrow_desc"/>
+                        android:contentDescription="right_arrow_desc"/>
                 </RelativeLayout>
 
                 <LinearLayout
@@ -142,7 +143,7 @@
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:layout_marginBottom="20dp"
-                    android:background="@drawable/grey_backround">
+                    android:background="@drawable/grey_background">
 
                     <TextView
                         android:layout_width="170dp"
@@ -174,7 +175,7 @@
                     android:gravity="center"
                     android:orientation="horizontal"
                     android:layout_marginBottom="20dp"
-                    android:background="@drawable/grey_backround">
+                    android:background="@drawable/grey_background">
 
                     <TextView
                         android:layout_width="170dp"
@@ -200,12 +201,13 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/create_quiz_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="10dp"
                     android:gravity="center"
                     android:layout_marginBottom="20dp"
-                    android:background="@drawable/grey_backround"
+                    android:background="@drawable/grey_background"
                     android:orientation="vertical">
 
                     <TextView
@@ -213,11 +215,11 @@
                         android:layout_height="wrap_content"
                         android:text="Create Quiz"
                         android:gravity="start"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="10dp"
-                    android:textColor="@color/main"
-                    android:padding="10dp"/>
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="10dp"
+                        android:textColor="@color/main"
+                        android:padding="10dp"/>
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -227,11 +229,12 @@
                             android:id="@+id/create"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
                             android:textStyle="bold"
                             android:padding="20dp"
                             android:textAllCaps="false"
                             android:gravity="center"
-                            android:layout_marginLeft="10dp"
+                            android:layout_marginStart="10dp"
                             android:text="Create"
                             android:background="@drawable/button_background"
                             android:textColor="@color/white"/>
@@ -241,26 +244,33 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textSize="20sp"
-                            android.imeOptions="actionDone"
+                            android:imeOptions="actionDone"
                             android:padding="17dp"
                             android:inputType="text"
-                            android:layout_toLeftOf="@id/create"
+                            android:layout_toStartOf="@+id/create"
                             android:hint="Title"
                             android:textColor="@color/black"
                             android:background="@drawable/white_edit"/>
                     </RelativeLayout>
-
-                    <TextView
-                        android:id="@+id/signup"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:textStyle="bold"
-                        android:padding="20dp"
-                        android:textSize="30sp"
-                        android:text="Signup"
-                        android:contentDescription=" signup_desc"/>
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/set_reminder_button"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:background="@drawable/button_background"
+                    android:text="Set Reminder"
+                    android:textColor="@color/white"
+                    android:textSize="18sp" />
+                <TextView
+                    android:background="@drawable/button_background"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/signup"
+                    android:layout_marginTop="20dp"
+                    android:text="Sign Up"/>
+
             </LinearLayout>
         </ScrollView>
     </LinearLayout>

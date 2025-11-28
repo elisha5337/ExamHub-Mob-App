@@ -1,69 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    android:gravity="center_horizontal"
-    android:background="@color/main"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/main"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
     tools:context=".Exam">
 
-    <TextView
-        android:id="@+id/title"
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_exam"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="40sp"
-    android:layout_margin="30dp"
-    android:textStyle="bold"
-    android:textColor="@color/white"
-    android:text="Exam"
-    android:contentDescription="exam_title" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/background"
-        android:paddingTop="20dp"
+        android:gravity="top|center_horizontal"
         android:paddingHorizontal="20dp"
-        android:gravity="top|center_horizontal">
+        android:paddingTop="20dp">
 
         <ListView
             android:id="@+id/list_item"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:dividerHeight="20dp"
+            android:layout_above="@id/buttonL"
             android:divider="@color/transparent"
-            android:layout_above="@id/buttonL"/>
+            android:dividerHeight="20dp" />
 
         <LinearLayout
             android:id="@+id/buttonL"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="10dp"
-            android:gravity="center"
             android:layout_alignParentBottom="true"
-            android:orientation="vertical">
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingVertical="10dp">
 
             <Button
                 android:id="@+id/submit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/button_background"
-                android:textSize="20sp"
-            android:text="Submit"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:padding="10dp" />
-
-            <Button
-                android:id="@+id/back_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:text="Back" />
+                android:padding="10dp"
+                android:text="Submit"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
 
         </LinearLayout>
     </RelativeLayout>

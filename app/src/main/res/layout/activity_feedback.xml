@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/main"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".FeedbackActivity">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar_contact_me"
+        android:id="@+id/toolbar_feedback"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
@@ -17,25 +19,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/background"
-        android:gravity="center"
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Contact Me"
+        <EditText
+            android:id="@+id/feedback_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:hint="Enter your feedback here..."
+            android:gravity="top"
+            android:background="@drawable/white_edit"
+            android:padding="15dp"
             android:textColor="@color/black"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:textSize="18sp" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/submit_feedback_button"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
-            android:text="For any inquiries, please contact me at examhub@example.com."
-            android:textColor="@color/black"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/button_background"
+            android:text="Submit Feedback"
+            android:textColor="@color/white"
             android:textSize="18sp" />
 
     </LinearLayout>

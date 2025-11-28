@@ -1,8 +1,9 @@
 package com.example.examhubapp;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
+import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,6 +11,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 public class AddQuestionActivity extends AppCompatActivity {
 
@@ -28,7 +30,25 @@ public class AddQuestionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        boolean isAdmin = sharedPreferences.getBoolean("is_admin", false);
+
+        if (!isAdmin) {
+            Toast.makeText(this, "You are not authorized to access this page.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_add_question);
+
+        Toolbar toolbar = findViewById(R.id.toolbar_add_question);
+        setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Add Question");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
 
         questionEditText = findViewById(R.id.question_edit_text);
         option1EditText = findViewById(R.id.option1_edit_text);
@@ -82,5 +102,14 @@ public class AddQuestionActivity extends AppCompatActivity {
         resultIntent.putExtra(EXTRA_NEW_QUESTION, newQuestion);
         setResult(RESULT_OK, resultIntent);
         finish();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

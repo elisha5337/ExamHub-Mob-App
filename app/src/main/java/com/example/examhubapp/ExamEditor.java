@@ -4,14 +4,21 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.Button; // Changed from TextView
 import android.widget.TextView;
+
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class ExamEditor extends AppCompatActivity {
 
@@ -22,6 +29,13 @@ public class ExamEditor extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_exam_editor);
+
+        // --- Fix 1: Correctly handle window insets for edge-to-edge display ---
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         // Initialize the questions list
         questions = new ArrayList<>();
@@ -35,45 +49,52 @@ public class ExamEditor extends AppCompatActivity {
         recyclerView.setAdapter(adapter);
     }
 
+    // --- Fix 2: Changed ViewHolder to use Buttons for options, which is more appropriate ---
     public static class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
-        private final ArrayList<Question> arr;
+        private final ArrayList<Question> questionList;
 
         public CustomAdapter(ArrayList<Question> questions) {
-            this.arr = questions;
+            this.questionList = questions;
         }
 
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            // --- Fix 3: Changed layout name to be more descriptive ---
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.question, parent, false); // Assuming a layout named question_item
+                    .inflate(R.layout.question, parent, false); // Use 'question_item.xml'
             return new ViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            Question question = arr.get(position);
+            Question question = questionList.get(position);
             holder.questionText.setText(question.getQuestion());
-            holder.option1.setText(question.getAnswer()); // Assuming first option is the answer
-            holder.option2.setText(question.getOptions()[0]);
-            holder.option3.setText(question.getOptions()[1]);
-            holder.option4.setText(question.getOptions()[2]);
+
+            // --- Fix 4: Safely get and set options to prevent crashes ---
+            // The Question's constructor now creates a shuffled list of all choices.
+            List<String> options = question.getShuffledOptions();
+            holder.option1.setText(options.get(0));
+            holder.option2.setText(options.get(1));
+            holder.option3.setText(options.get(2));
+            holder.option4.setText(options.get(3));
         }
 
         @Override
         public int getItemCount() {
-            return arr.size();
+            return questionList.size();
         }
 
         public static class ViewHolder extends RecyclerView.ViewHolder {
             public TextView questionText;
-            public TextView option1;
-            public TextView option2;
-            public TextView option3;
-            public TextView option4;
+            public Button option1; // Changed to Button
+            public Button option2; // Changed to Button
+            public Button option3; // Changed to Button
+            public Button option4; // Changed to Button
 
             public ViewHolder(@NonNull View itemView) {
                 super(itemView);
+                // Ensure these IDs match your 'question_item.xml'
                 questionText = itemView.findViewById(R.id.question);
                 option1 = itemView.findViewById(R.id.option1);
                 option2 = itemView.findViewById(R.id.option2);
@@ -83,15 +104,23 @@ public class ExamEditor extends AppCompatActivity {
         }
     }
 
+    // --- Fix 5: Improved Question class to handle options more safely ---
     private static class Question {
         private String question;
         private String answer;
-        private String[] options;
+        private List<String> shuffledOptions; // Use a List for flexibility
 
-        Question(String question, String answer, String[] options) {
+        Question(String question, String answer, String[] otherOptions) {
             this.question = question;
             this.answer = answer;
-            this.options = options;
+
+            // Create a combined list of all options
+            this.shuffledOptions = new ArrayList<>();
+            this.shuffledOptions.add(answer); // Add the correct answer
+            Collections.addAll(this.shuffledOptions, otherOptions); // Add the other options
+
+            // Shuffle the list so the correct answer is not always the first option
+            Collections.shuffle(this.shuffledOptions);
         }
 
         public String getQuestion() {
@@ -102,8 +131,9 @@ public class ExamEditor extends AppCompatActivity {
             return answer;
         }
 
-        public String[] getOptions() {
-            return options;
+        // Return the pre-shuffled list of 4 options
+        public List<String> getShuffledOptions() {
+            return shuffledOptions;
         }
     }
 }

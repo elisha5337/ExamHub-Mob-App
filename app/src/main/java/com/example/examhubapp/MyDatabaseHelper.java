@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "mydatabase.db";
-    private static final int DATABASE_VERSION = 5; // Incremented database version
+    private static final int DATABASE_VERSION = 7; // Incremented database version
 
     private static final ExecutorService databaseExecutor = Executors.newSingleThreadExecutor();
 
@@ -29,9 +29,11 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String createTableSQL = "CREATE TABLE registration (id INTEGER PRIMARY KEY, fname TEXT,lname TEXT,email TEXT,password TEXT,confirmPassword TEXT)";
-        db.execSQL(createTableSQL);
-        String createTableSQL2 = "CREATE TABLE questions (" +
+        String createRegistrationTableSQL = "CREATE TABLE registration (id INTEGER PRIMARY KEY, fname TEXT, lname TEXT, email TEXT, password TEXT, confirmPassword TEXT, isAdmin INTEGER DEFAULT 0)";
+        db.execSQL(createRegistrationTableSQL);
+        addDefaultAdmin(db);
+
+        String createQuestionsTableSQL = "CREATE TABLE questions (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "question TEXT, " +
                 "option1 TEXT, " +
@@ -40,14 +42,28 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
                 "option4 TEXT, " +
                 "correctAnswer TEXT, " +
                 "description TEXT, " +
-                "courseType TEXT)"; // Added courseType column
-        db.execSQL(createTableSQL2);
+                "courseType TEXT)";
+        db.execSQL(createQuestionsTableSQL);
+
+        String createFeedbackTableSQL = "CREATE TABLE feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, feedback TEXT, timestamp INTEGER)";
+        db.execSQL(createFeedbackTableSQL);
+    }
+
+    private void addDefaultAdmin(SQLiteDatabase db) {
+        ContentValues values = new ContentValues();
+        values.put("fname", "Admin");
+        values.put("lname", "User");
+        values.put("email", "admin@examhub.com");
+        values.put("password", "admin123");
+        values.put("isAdmin", 1);
+        db.insert("registration", null, values);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS registration");
         db.execSQL("DROP TABLE IF EXISTS questions");
+        db.execSQL("DROP TABLE IF EXISTS feedback");
         onCreate(db);
     }
 
@@ -58,7 +74,17 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         values.put("lname", lname);
         values.put("email", email);
         values.put("password", password);
+        values.put("isAdmin", 0);
         return db.insert("registration", null, values);
+    }
+
+    public long insertFeedback(String email, String feedback) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("email", email);
+        values.put("feedback", feedback);
+        values.put("timestamp", System.currentTimeMillis());
+        return db.insert("feedback", null, values);
     }
 
     public boolean checkUser(String email, String password) {
@@ -69,6 +95,19 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
             return cursor.getCount() > 0;
         }
+    }
+
+    public boolean isUserAdmin(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String[] columns = {"isAdmin"};
+        String selection = "email = ?";
+        String[] selectionArgs = {email};
+        try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
+            if (cursor.moveToFirst()) {
+                return cursor.getInt(cursor.getColumnIndexOrThrow("isAdmin")) == 1;
+            }
+        }
+        return false;
     }
 
     public User getUserProfile(String email) {
@@ -111,7 +150,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         values.put("option4", question.getOption4());
         values.put("correctAnswer", question.getCorrectAnswer());
         values.put("description", question.getDescription());
-        values.put("courseType", question.getCourseType()); // Added courseType
+        values.put("courseType", question.getCourseType());
         db.insert("questions", null, values);
     }
 
