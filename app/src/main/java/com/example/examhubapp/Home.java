@@ -31,12 +31,16 @@ import androidx.lifecycle.ViewModelProvider;
 
 import java.util.Calendar;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class Home extends AppCompatActivity {
     private HomeViewModel homeViewModel;
     private Spinner examTypeSpinner;
     private TextView totalPoints;
     private MyDatabaseHelper dbHelper;
     private ActivityResultLauncher<Intent> addQuestionLauncher;
+    private ActivityResultLauncher<Intent> examLauncher;
+    private CircleImageView profileImageView;
 
     private static final String EXAM_TYPE_KEY = "EXAM_TYPE";
 
@@ -64,6 +68,14 @@ public class Home extends AppCompatActivity {
                                 homeViewModel.loadQuestionsByCourse(selectedCourse);
                             }
                         }
+                    }
+                });
+
+        examLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        loadTotalPoints();
                     }
                 });
 
@@ -122,7 +134,7 @@ public class Home extends AppCompatActivity {
             if (selectedExamType != null) {
                 Intent quizIntent = new Intent(Home.this, Exam.class);
                 quizIntent.putExtra(EXAM_TYPE_KEY, selectedExamType);
-                startActivity(quizIntent);
+                examLauncher.launch(quizIntent);
             } else {
                 Toast.makeText(Home.this, "Please select an exam type.", Toast.LENGTH_SHORT).show();
             }
@@ -134,7 +146,8 @@ public class Home extends AppCompatActivity {
         });
 
         solvedQuizesLayout.setOnClickListener(v -> {
-            Toast.makeText(Home.this, "Showing solved quizzes", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(Home.this, SolvedQuestionsActivity.class);
+            startActivity(intent);
         });
 
         yourQuizes.setOnClickListener(v -> {
@@ -192,9 +205,36 @@ public class Home extends AppCompatActivity {
         }
     }
 
+    private void loadProfileImage() {
+        SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+        String email = sharedPreferences.getString("email", null);
+        if (email != null && profileImageView != null) {
+            User user = dbHelper.getUserProfile(email);
+            if (user != null && user.getProfileImagePath() != null) {
+                profileImageView.setImageURI(Uri.parse(user.getProfileImagePath()));
+            } else {
+                profileImageView.setImageResource(R.drawable.ic_launcher_foreground);
+            }
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.home_menu, menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        MenuItem profileItem = menu.findItem(R.id.action_profile_image);
+        if (profileItem != null) {
+            View actionView = profileItem.getActionView();
+            if (actionView != null) {
+                profileImageView = actionView.findViewById(R.id.profile_image);
+                actionView.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, ProfileActivity.class);
+                    startActivity(intent);
+                });
+                if (profileImageView != null) {
+                    profileImageView.post(this::loadProfileImage);
+                }
+            }
+        }
         return true;
     }
 
@@ -225,11 +265,17 @@ public class Home extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadTotalPoints();
+        invalidateOptionsMenu();
     }
 
-    private void loadTotalPoints() {
+    public void loadTotalPoints() {
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
-        int totalScore = sharedPreferences.getInt("total_score", 0);
-        totalPoints.setText(String.valueOf(totalScore));
+        String email = sharedPreferences.getString("email", null);
+        if (email != null) {
+            User user = dbHelper.getUserProfile(email);
+            if (user != null) {
+                totalPoints.setText(String.valueOf(user.getTotalScore()));
+            }
+        }
     }
 }

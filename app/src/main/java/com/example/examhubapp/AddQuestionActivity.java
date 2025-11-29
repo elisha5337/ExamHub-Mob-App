@@ -96,7 +96,7 @@ public class AddQuestionActivity extends AppCompatActivity {
             return;
         }
 
-        Question newQuestion = new Question(questionText, option1, option2, option3, option4, correctAnswer, description, courseType);
+        Question newQuestion = new Question(0, questionText, option1, option2, option3, option4, correctAnswer, description, courseType);
 
         Intent resultIntent = new Intent();
         resultIntent.putExtra(EXTRA_NEW_QUESTION, newQuestion);

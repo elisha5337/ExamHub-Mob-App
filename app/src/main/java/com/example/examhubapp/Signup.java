@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -12,7 +13,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class Signup extends AppCompatActivity {
     private MyDatabaseHelper dbHelper;
-
+    private int[] images={
+             R.drawable.jesus,
+            R.drawable.marek,
+            R.drawable.building,
+            R.drawable.samsung
+    };
+    private int index=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,6 +30,7 @@ public class Signup extends AppCompatActivity {
         Button signup = findViewById(R.id.signup);
         TextView login = findViewById(R.id.login);
         EditText fname = findViewById(R.id.fname);
+        ImageView image=findViewById(R.id.image);
         EditText lname = findViewById(R.id.lname);
         EditText email = findViewById(R.id.email);
         EditText password = findViewById(R.id.password);
@@ -70,5 +78,13 @@ public class Signup extends AppCompatActivity {
             Intent i = new Intent(Signup.this, LoginActivity.class);
             startActivity(i);
         });
+        image.setOnClickListener(v->{
+            index++;
+            if(index>=images.length){
+                index=0;
+            }
+            image.setImageResource(images[index]);
+        });
+
     }
 }

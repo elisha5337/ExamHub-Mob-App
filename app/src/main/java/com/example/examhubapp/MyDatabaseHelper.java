@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "mydatabase.db";
-    private static final int DATABASE_VERSION = 7; // Incremented database version
+    private static final int DATABASE_VERSION = 13; // Incremented for schema change
 
     private static final ExecutorService databaseExecutor = Executors.newSingleThreadExecutor();
 
@@ -29,7 +29,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String createRegistrationTableSQL = "CREATE TABLE registration (id INTEGER PRIMARY KEY, fname TEXT, lname TEXT, email TEXT, password TEXT, confirmPassword TEXT, isAdmin INTEGER DEFAULT 0)";
+        String createRegistrationTableSQL = "CREATE TABLE registration (id INTEGER PRIMARY KEY, fname TEXT, lname TEXT, email TEXT, password TEXT, confirmPassword TEXT, isAdmin INTEGER DEFAULT 0, total_score INTEGER DEFAULT 0, answered_questions INTEGER DEFAULT 0, missed_questions INTEGER DEFAULT 0, profile_image_path TEXT)";
         db.execSQL(createRegistrationTableSQL);
         addDefaultAdmin(db);
 
@@ -47,14 +47,23 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
         String createFeedbackTableSQL = "CREATE TABLE feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, feedback TEXT, timestamp INTEGER)";
         db.execSQL(createFeedbackTableSQL);
+
+        String createUserAnsweredQuestionsTableSQL = "CREATE TABLE user_answered_questions (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "user_email TEXT, " +
+                "question_id INTEGER, " +
+                "selected_answer TEXT, " +
+                "is_correct INTEGER, " +
+                "UNIQUE(user_email, question_id))" ;
+        db.execSQL(createUserAnsweredQuestionsTableSQL);
     }
 
     private void addDefaultAdmin(SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put("fname", "Admin");
         values.put("lname", "User");
-        values.put("email", "admin@examhub.com");
-        values.put("password", "admin123");
+        values.put("email", "admin@elsa.com");
+        values.put("password", "53372545");
         values.put("isAdmin", 1);
         db.insert("registration", null, values);
     }
@@ -64,6 +73,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS registration");
         db.execSQL("DROP TABLE IF EXISTS questions");
         db.execSQL("DROP TABLE IF EXISTS feedback");
+        db.execSQL("DROP TABLE IF EXISTS user_answered_questions");
         onCreate(db);
     }
 
@@ -76,6 +86,78 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         values.put("password", password);
         values.put("isAdmin", 0);
         return db.insert("registration", null, values);
+    }
+
+    public void updateProfileImagePath(String email, String path) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("profile_image_path", path);
+        String selection = "email = ?";
+        String[] selectionArgs = {email};
+        db.update("registration", values, selection, selectionArgs);
+    }
+
+    public void saveUserAnswer(String userEmail, int questionId, String selectedAnswer, boolean isCorrect) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("user_email", userEmail);
+        values.put("question_id", questionId);
+        values.put("selected_answer", selectedAnswer);
+        values.put("is_correct", isCorrect ? 1 : 0);
+        db.insertWithOnConflict("user_answered_questions", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public List<AnsweredQuestion> getAnsweredQuestions(String userEmail, boolean isCorrect) {
+        List<AnsweredQuestion> answeredQuestions = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT q.*, ua.selected_answer, ua.is_correct FROM questions q JOIN user_answered_questions ua ON q.id = ua.question_id WHERE ua.user_email = ? AND ua.is_correct = ?";
+        try (Cursor cursor = db.rawQuery(query, new String[]{userEmail, isCorrect ? "1" : "0"})) {
+            if (cursor.moveToFirst()) {
+                do {
+                    Question question = new Question(
+                            cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("question")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option1")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option2")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option3")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option4")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
+                    );
+                    String selectedAnswer = cursor.getString(cursor.getColumnIndexOrThrow("selected_answer"));
+                    answeredQuestions.add(new AnsweredQuestion(question, selectedAnswer, isCorrect));
+                } while (cursor.moveToNext());
+            }
+        }
+        return answeredQuestions;
+    }
+
+    public List<AnsweredQuestion> getSolvedQuestions(String userEmail) {
+        List<AnsweredQuestion> answeredQuestions = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT q.*, ua.selected_answer, ua.is_correct FROM questions q JOIN user_answered_questions ua ON q.id = ua.question_id WHERE ua.user_email = ?";
+        try (Cursor cursor = db.rawQuery(query, new String[]{userEmail})) {
+            if (cursor.moveToFirst()) {
+                do {
+                    Question question = new Question(
+                            cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("question")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option1")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option2")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option3")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("option4")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                            cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
+                    );
+                    String selectedAnswer = cursor.getString(cursor.getColumnIndexOrThrow("selected_answer"));
+                    boolean isCorrect = cursor.getInt(cursor.getColumnIndexOrThrow("is_correct")) == 1;
+                    answeredQuestions.add(new AnsweredQuestion(question, selectedAnswer, isCorrect));
+                } while (cursor.moveToNext());
+            }
+        }
+        return answeredQuestions;
     }
 
     public long insertFeedback(String email, String feedback) {
@@ -112,7 +194,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     public User getUserProfile(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {"fname", "lname", "email"};
+        String[] columns = {"fname", "lname", "email", "total_score", "answered_questions", "missed_questions", "profile_image_path"};
         String selection = "email = ?";
         String[] selectionArgs = {email};
         try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
@@ -120,7 +202,11 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
                 return new User(
                         cursor.getString(cursor.getColumnIndexOrThrow("fname")),
                         cursor.getString(cursor.getColumnIndexOrThrow("lname")),
-                        cursor.getString(cursor.getColumnIndexOrThrow("email"))
+                        cursor.getString(cursor.getColumnIndexOrThrow("email")),
+                        cursor.getInt(cursor.getColumnIndexOrThrow("total_score")),
+                        cursor.getInt(cursor.getColumnIndexOrThrow("answered_questions")),
+                        cursor.getInt(cursor.getColumnIndexOrThrow("missed_questions")),
+                        cursor.getString(cursor.getColumnIndexOrThrow("profile_image_path"))
                 );
             }
         }
@@ -138,6 +224,17 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
             }
         }
         return null;
+    }
+
+    public void updateUserStats(String email, int score, int answered, int missed) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("total_score", score);
+        values.put("answered_questions", answered);
+        values.put("missed_questions", missed);
+        String selection = "email = ?";
+        String[] selectionArgs = {email};
+        db.update("registration", values, selection, selectionArgs);
     }
 
     public void insertQuestion(Question question) {
@@ -161,6 +258,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     Question question = new Question(
+                            cursor.getInt(cursor.getColumnIndexOrThrow("id")),
                             cursor.getString(cursor.getColumnIndexOrThrow("question")),
                             cursor.getString(cursor.getColumnIndexOrThrow("option1")),
                             cursor.getString(cursor.getColumnIndexOrThrow("option2")),
@@ -194,6 +292,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 do {
                     Question question = new Question(
+                            cursor.getInt(cursor.getColumnIndexOrThrow("id")),
                             cursor.getString(cursor.getColumnIndexOrThrow("question")),
                             cursor.getString(cursor.getColumnIndexOrThrow("option1")),
                             cursor.getString(cursor.getColumnIndexOrThrow("option2")),
