@@ -28,10 +28,10 @@ Future Enhancements
 - Database Integration: For dynamic content updates, ensuring the latest materials are always available.
 
 Team Members & Roles
-- Elsaye Arba: Implement user registration and login functionalities.
+- Elsaye Arba: Implement user registration ,login and backend logic.
 - Destaye Andegna: Develop the result screen to display scores and feedback.
 - Kaleb Wondimu: Design and implement the home screen with subject selection.
-- Biruk Bedilu: UI/UX Designer and backend logic developer.
+- Biruk Bedilu: UI/UX Designer
 - Adan Mohammed: Create the quiz screen to display multiple-choice questions.
 
 Supporting Tools and Resources
