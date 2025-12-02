@@ -25,7 +25,7 @@ Core Features
 Future Enhancements
 - User Accounts: For personalized experiences based on individual learning paths.
 - Leaderboards: To foster competitive engagement among users.
-- Database Integration**: For dynamic content updates, ensuring the latest materials are always available.
+- Database Integration: For dynamic content updates, ensuring the latest materials are always available.
 
 Team Members & Roles
 - Elsaye Arba: Implement user registration and login functionalities.
