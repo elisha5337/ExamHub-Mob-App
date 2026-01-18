@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="exam_types">
+        <item>Math</item>
+        <item>Science</item>
+        <item>History</item>
+        <item>English</item>
+        <item>Geography</item>
+    </string-array>
+</resources>
+
