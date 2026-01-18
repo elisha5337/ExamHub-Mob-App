@@ -108,47 +108,48 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void loadUserProfile() {
-        User user = dbHelper.getUserProfile(userEmail);
-        if (user != null) {
-            TextView firstNameTextView = findViewById(R.id.first_name_text_view);
-            TextView lastNameTextView = findViewById(R.id.last_name_text_view);
-            TextView emailTextView = findViewById(R.id.email_text_view);
-            TextView totalPointsTextView = findViewById(R.id.total_points_text_view);
-            TextView questionsAnsweredCorrectlyTextView = findViewById(R.id.questions_answered_correctly_text_view);
-            TextView questionsAnsweredIncorrectlyTextView = findViewById(R.id.questions_answered_incorrectly_text_view);
-            TextView progress = findViewById(R.id.progress);
-            TextView status = findViewById(R.id.status);
+        dbHelper.getUserProfileAsync(userEmail, user -> {
+            if (user != null) {
+                TextView firstNameTextView = findViewById(R.id.first_name_text_view);
+                TextView lastNameTextView = findViewById(R.id.last_name_text_view);
+                TextView emailTextView = findViewById(R.id.email_text_view);
+                TextView totalPointsTextView = findViewById(R.id.total_points_text_view);
+                TextView questionsAnsweredCorrectlyTextView = findViewById(R.id.questions_answered_correctly_text_view);
+                TextView questionsAnsweredIncorrectlyTextView = findViewById(R.id.questions_answered_incorrectly_text_view);
+                TextView progress = findViewById(R.id.progress);
+                TextView status = findViewById(R.id.status);
 
-            firstNameTextView.setText("First Name: " + user.getFname());
-            lastNameTextView.setText("Last Name: " + user.getLname());
-            emailTextView.setText("Email: " + user.getEmail());
-            totalPointsTextView.setText("Total Points: " + user.getTotalScore());
-            questionsAnsweredCorrectlyTextView.setText("Questions Answered Correctly: " + user.getAnsweredQuestions());
-            questionsAnsweredIncorrectlyTextView.setText("Questions Answered Incorrectly: " + user.getMissedQuestions());
+                firstNameTextView.setText("First Name: " + user.getFname());
+                lastNameTextView.setText("Last Name: " + user.getLname());
+                emailTextView.setText("Email: " + user.getEmail());
+                totalPointsTextView.setText("Total Points: " + user.getTotalScore());
+                questionsAnsweredCorrectlyTextView.setText("Questions Answered Correctly: " + user.getAnsweredQuestions());
+                questionsAnsweredIncorrectlyTextView.setText("Questions Answered Incorrectly: " + user.getMissedQuestions());
 
-            if (user.getProfileImagePath() != null) {
-                profileImageView.setImageURI(Uri.parse(user.getProfileImagePath()));
-                if (menuProfileImageView != null) {
-                    menuProfileImageView.setImageURI(Uri.parse(user.getProfileImagePath()));
+                if (user.getProfileImagePath() != null) {
+                    profileImageView.setImageURI(Uri.parse(user.getProfileImagePath()));
+                    if (menuProfileImageView != null) {
+                        menuProfileImageView.setImageURI(Uri.parse(user.getProfileImagePath()));
+                    }
+                }
+
+                double ans = user.getAnsweredQuestions();
+                double lose = user.getMissedQuestions();
+                double total = ans + lose;
+                if (total > 0) {
+                    double percent = ans / total;
+                    double pr = percent * 100;
+                    if (pr >= 50) {
+                        progress.setText("progress in percent:" + String.format("%.2f", pr) + "%");
+                        status.setText("Status: Good");
+                    } else {
+                        progress.setText("progress in percent:" + String.format("%.2f", pr) + "%");
+                        progress.setTextColor(getResources().getColor(R.color.red_dark));
+                        status.setText("Status: Bad");
+                    }
                 }
             }
-
-            double ans = user.getAnsweredQuestions();
-            double lose = user.getMissedQuestions();
-            double total = ans + lose;
-            if (total > 0) {
-                double percent = ans / total;
-                double pr = percent * 100;
-                if (pr >= 50) {
-                    progress.setText("progress in percent:" + String.format("%.2f", pr) + "%");
-                    status.setText("Status: Good");
-                } else {
-                    progress.setText("progress in percent:" + String.format("%.2f", pr) + "%");
-                    progress.setTextColor(getResources().getColor(R.color.red_dark));
-                    status.setText("Status: Bad");
-                }
-            }
-        }
+        });
     }
 
     private void saveImageToInternalStorage(Uri uri) {
@@ -169,7 +170,7 @@ public class ProfileActivity extends AppCompatActivity {
             inputStream.close();
 
             String imagePath = imageFile.getAbsolutePath();
-            dbHelper.updateProfileImagePath(userEmail, imagePath);
+            dbHelper.updateProfileImagePathAsync(userEmail, imagePath);
             profileImageView.setImageURI(Uri.parse(imagePath));
             if (menuProfileImageView != null) {
                 menuProfileImageView.setImageURI(Uri.parse(imagePath));
@@ -190,7 +191,13 @@ public class ProfileActivity extends AppCompatActivity {
             View actionView = profileItem.getActionView();
             if (actionView != null) {
                 menuProfileImageView = actionView.findViewById(R.id.profile_image);
-                loadUserProfile();
+                actionView.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, ProfileActivity.class);
+                    startActivity(intent);
+                });
+                if (menuProfileImageView != null) {
+                    menuProfileImageView.post(this::loadUserProfile);
+                }
             }
         }
         return true;
@@ -214,13 +221,16 @@ public class ProfileActivity extends AppCompatActivity {
         } else if (itemId == R.id.action_feedback) {
             startActivity(new Intent(this, FeedbackActivity.class));
             return true;
+        } else if (itemId == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
         invalidateOptionsMenu();
     }
 }

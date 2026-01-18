@@ -47,14 +47,14 @@ public class FeedbackActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
         String email = sharedPreferences.getString("email", "guest");
 
-        long newRowId = dbHelper.insertFeedback(email, feedbackText);
-
-        if (newRowId != -1) {
-            Toast.makeText(this, "Thank you for your feedback!", Toast.LENGTH_SHORT).show();
-            finish();
-        } else {
-            Toast.makeText(this, "Failed to submit feedback. Please try again.", Toast.LENGTH_SHORT).show();
-        }
+        dbHelper.insertFeedbackAsync(email, feedbackText, newRowId -> {
+            if (newRowId != -1) {
+                Toast.makeText(this, "Thank you for your feedback!", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to submit feedback. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -13,13 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class Signup extends AppCompatActivity {
     private MyDatabaseHelper dbHelper;
-    private int[] images={
-             R.drawable.jesus,
-            R.drawable.marek,
-            R.drawable.building,
-            R.drawable.samsung
-    };
-    private int index=0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +23,6 @@ public class Signup extends AppCompatActivity {
         Button signup = findViewById(R.id.signup);
         TextView login = findViewById(R.id.login);
         EditText fname = findViewById(R.id.fname);
-        ImageView image=findViewById(R.id.image);
         EditText lname = findViewById(R.id.lname);
         EditText email = findViewById(R.id.email);
         EditText password = findViewById(R.id.password);
@@ -48,7 +40,6 @@ public class Signup extends AppCompatActivity {
             String pass = password.getText().toString();
             String confirmpass = confirmPassword.getText().toString();
 
-            // Input validation
             if (firstName.isEmpty() || lastName.isEmpty() || em.isEmpty() || pass.isEmpty() || confirmpass.isEmpty()) {
                 Toast.makeText(Signup.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
                 progressDialog.dismiss();
@@ -61,30 +52,25 @@ public class Signup extends AppCompatActivity {
                 return;
             }
 
-            long newRowId = dbHelper.insertUser(firstName, lastName, em, pass);
-
-            if (newRowId != -1) {
-                Toast.makeText(Signup.this, "Signup successful!", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(Signup.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-            } else {
-                Toast.makeText(Signup.this, "Error saving data.", Toast.LENGTH_SHORT).show();
-            }
-            progressDialog.dismiss();
+            dbHelper.insertUserAsync(firstName, lastName, em, pass, new MyDatabaseHelper.DatabaseCallback<Long>() {
+                @Override
+                public void onComplete(Long result) {
+                    progressDialog.dismiss();
+                    if (result != -1) {
+                        Toast.makeText(Signup.this, "Signup successful!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(Signup.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Toast.makeText(Signup.this, "Error saving data.", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         });
 
         login.setOnClickListener(v -> {
             Intent i = new Intent(Signup.this, LoginActivity.class);
             startActivity(i);
         });
-        image.setOnClickListener(v->{
-            index++;
-            if(index>=images.length){
-                index=0;
-            }
-            image.setImageResource(images[index]);
-        });
-
     }
 }

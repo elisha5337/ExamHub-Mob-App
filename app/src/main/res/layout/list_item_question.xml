@@ -23,24 +23,28 @@
             android:id="@+id/option1_radiobutton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
             android:text="Option 1"/>
 
         <RadioButton
             android:id="@+id/option2_radiobutton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
             android:text="Option 2"/>
 
         <RadioButton
             android:id="@+id/option3_radiobutton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
             android:text="Option 3"/>
 
         <RadioButton
             android:id="@+id/option4_radiobutton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="@android:color/black"
             android:text="Option 4"/>
     </RadioGroup>
 

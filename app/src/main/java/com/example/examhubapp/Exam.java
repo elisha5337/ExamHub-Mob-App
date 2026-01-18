@@ -67,24 +67,18 @@ public class Exam extends AppCompatActivity {
     private void loadQuestions() {
         String courseType = getIntent().getStringExtra("EXAM_TYPE");
         if (courseType != null) {
-            dbHelper.getQuestionsByCourseAsync(courseType, new MyDatabaseHelper.DatabaseCallback<List<Question>>() {
-                @Override
-                public void onComplete(List<Question> result) {
-                    questions.clear();
-                    questions.addAll(result);
-                    adapter.notifyDataSetChanged();
-                    startTimer(questions.size() * 10 * 1000); // 1 minute per question
-                }
+            dbHelper.getQuestionsByCourseAsync(courseType, result -> {
+                questions.clear();
+                questions.addAll(result);
+                adapter.notifyDataSetChanged();
+                startTimer(questions.size() * 10 * 1000); // 10 seconds per question
             });
         } else {
-            dbHelper.getAllQuestionsAsync(new MyDatabaseHelper.DatabaseCallback<List<Question>>() {
-                @Override
-                public void onComplete(List<Question> result) {
-                    questions.clear();
-                    questions.addAll(result);
-                    adapter.notifyDataSetChanged();
-                    startTimer(questions.size() * 60 * 1000); // 1 minute per question
-                }
+            dbHelper.getAllQuestionsAsync(result -> {
+                questions.clear();
+                questions.addAll(result);
+                adapter.notifyDataSetChanged();
+                startTimer(questions.size() * 60 * 1000); // 1 minute per question
             });
         }
     }
@@ -141,20 +135,23 @@ public class Exam extends AppCompatActivity {
             resultsBuilder.append("Description: ").append(question.getDescription()).append("\n\n");
 
             if (email != null) {
-                dbHelper.saveUserAnswer(email, question.getId(), question.getSelectAnswer(), isCorrect);
+                dbHelper.saveUserAnswerAsync(email, question.getId(), question.getSelectAnswer(), isCorrect);
             }
         }
 
         if (email != null) {
-            User user = dbHelper.getUserProfile(email);
-            if (user != null) {
-                int totalScore = user.getTotalScore() + score;
-                int totalCorrect = user.getAnsweredQuestions() + correctAnswers;
-                int totalIncorrect = user.getMissedQuestions() + incorrectAnswers;
-                dbHelper.updateUserStats(email, totalScore, totalCorrect, totalIncorrect);
-
-                setResult(Activity.RESULT_OK);
-            }
+            int finalScore = score;
+            int finalCorrectAnswers = correctAnswers;
+            int finalIncorrectAnswers = incorrectAnswers;
+            dbHelper.getUserProfileAsync(email, user -> {
+                if (user != null) {
+                    int totalScore = user.getTotalScore() + finalScore;
+                    int totalCorrect = user.getAnsweredQuestions() + finalCorrectAnswers;
+                    int totalIncorrect = user.getMissedQuestions() + finalIncorrectAnswers;
+                    dbHelper.updateUserStatsAsync(email, totalScore, totalCorrect, totalIncorrect);
+                    setResult(Activity.RESULT_OK);
+                }
+            });
         }
 
         new AlertDialog.Builder(this)
@@ -172,12 +169,13 @@ public class Exam extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
         String email = sharedPreferences.getString("email", null);
         if (email != null && profileImageView != null) {
-            User user = dbHelper.getUserProfile(email);
-            if (user != null && user.getProfileImagePath() != null) {
-                profileImageView.setImageURI(Uri.parse(user.getProfileImagePath()));
-            } else {
-                profileImageView.setImageResource(R.drawable.ic_launcher_foreground);
-            }
+            dbHelper.getUserProfileAsync(email, user -> {
+                if (user != null && user.getProfileImagePath() != null) {
+                    profileImageView.setImageURI(Uri.parse(user.getProfileImagePath()));
+                } else {
+                    profileImageView.setImageResource(R.drawable.ic_launcher_foreground);
+                }
+            });
         }
     }
 
@@ -189,7 +187,13 @@ public class Exam extends AppCompatActivity {
             View actionView = profileItem.getActionView();
             if (actionView != null) {
                 profileImageView = actionView.findViewById(R.id.profile_image);
-                loadProfileImage();
+                actionView.setOnClickListener(v -> {
+                    Intent intent = new Intent(this, ProfileActivity.class);
+                    startActivity(intent);
+                });
+                if (profileImageView != null) {
+                    profileImageView.post(this::loadProfileImage);
+                }
             }
         }
         return true;
@@ -212,6 +216,9 @@ public class Exam extends AppCompatActivity {
             return true;
         } else if (itemId == R.id.action_feedback) {
             startActivity(new Intent(this, FeedbackActivity.class));
+            return true;
+        } else if (itemId == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);

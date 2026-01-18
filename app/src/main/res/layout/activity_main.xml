@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:background="@color/main"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -11,6 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ExamHub"
+        android:textColor="@android:color/white"
         android:textSize="32sp"
         android:textStyle="bold" />
 

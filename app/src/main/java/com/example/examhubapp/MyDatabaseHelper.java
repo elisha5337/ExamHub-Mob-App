@@ -15,9 +15,10 @@ import java.util.concurrent.Executors;
 
 public class MyDatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "mydatabase.db";
-    private static final int DATABASE_VERSION = 13; // Incremented for schema change
+    private static final int DATABASE_VERSION = 14; 
 
     private static final ExecutorService databaseExecutor = Executors.newSingleThreadExecutor();
+    private final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     public interface DatabaseCallback<T> {
         void onComplete(T result);
@@ -42,8 +43,16 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
                 "option4 TEXT, " +
                 "correctAnswer TEXT, " +
                 "description TEXT, " +
-                "courseType TEXT)";
+                "courseType TEXT, " +
+                "year INTEGER DEFAULT 0)";
         db.execSQL(createQuestionsTableSQL);
+
+        String createExamsTableSQL = "CREATE TABLE exams (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "subject TEXT, " +
+                "pdf_path TEXT, " +
+                "UNIQUE(subject))";
+        db.execSQL(createExamsTableSQL);
 
         String createFeedbackTableSQL = "CREATE TABLE feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, feedback TEXT, timestamp INTEGER)";
         db.execSQL(createFeedbackTableSQL);
@@ -70,67 +79,10 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS registration");
-        db.execSQL("DROP TABLE IF EXISTS questions");
-        db.execSQL("DROP TABLE IF EXISTS feedback");
-        db.execSQL("DROP TABLE IF EXISTS user_answered_questions");
-        onCreate(db);
-    }
-
-    public long insertUser(String fname, String lname, String email, String password) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("fname", fname);
-        values.put("lname", lname);
-        values.put("email", email);
-        values.put("password", password);
-        values.put("isAdmin", 0);
-        return db.insert("registration", null, values);
-    }
-
-    public void updateProfileImagePath(String email, String path) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("profile_image_path", path);
-        String selection = "email = ?";
-        String[] selectionArgs = {email};
-        db.update("registration", values, selection, selectionArgs);
-    }
-
-    public void saveUserAnswer(String userEmail, int questionId, String selectedAnswer, boolean isCorrect) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("user_email", userEmail);
-        values.put("question_id", questionId);
-        values.put("selected_answer", selectedAnswer);
-        values.put("is_correct", isCorrect ? 1 : 0);
-        db.insertWithOnConflict("user_answered_questions", null, values, SQLiteDatabase.CONFLICT_REPLACE);
-    }
-
-    public List<AnsweredQuestion> getAnsweredQuestions(String userEmail, boolean isCorrect) {
-        List<AnsweredQuestion> answeredQuestions = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String query = "SELECT q.*, ua.selected_answer, ua.is_correct FROM questions q JOIN user_answered_questions ua ON q.id = ua.question_id WHERE ua.user_email = ? AND ua.is_correct = ?";
-        try (Cursor cursor = db.rawQuery(query, new String[]{userEmail, isCorrect ? "1" : "0"})) {
-            if (cursor.moveToFirst()) {
-                do {
-                    Question question = new Question(
-                            cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("question")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option1")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option2")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option3")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option4")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
-                    );
-                    String selectedAnswer = cursor.getString(cursor.getColumnIndexOrThrow("selected_answer"));
-                    answeredQuestions.add(new AnsweredQuestion(question, selectedAnswer, isCorrect));
-                } while (cursor.moveToNext());
-            }
+        if (oldVersion < 14) {
+            db.execSQL("DROP TABLE IF EXISTS exams");
+            db.execSQL("CREATE TABLE exams (id INTEGER PRIMARY KEY AUTOINCREMENT, subject TEXT, pdf_path TEXT, UNIQUE(subject))");
         }
-        return answeredQuestions;
     }
 
     public List<AnsweredQuestion> getSolvedQuestions(String userEmail) {
@@ -160,44 +112,156 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         return answeredQuestions;
     }
 
-    public long insertFeedback(String email, String feedback) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("email", email);
-        values.put("feedback", feedback);
-        values.put("timestamp", System.currentTimeMillis());
-        return db.insert("feedback", null, values);
+    public void updateProfileImagePathAsync(String email, String imagePath) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("profile_image_path", imagePath);
+            db.update("registration", values, "email = ?", new String[]{email});
+        });
     }
 
-    public boolean checkUser(String email, String password) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {"id"};
-        String selection = "email = ? AND password = ?";
-        String[] selectionArgs = {email, password};
-        try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
-            return cursor.getCount() > 0;
-        }
+    public void insertFeedbackAsync(String email, String feedback, DatabaseCallback<Long> callback) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("email", email);
+            values.put("feedback", feedback);
+            values.put("timestamp", System.currentTimeMillis());
+            long id = db.insert("feedback", null, values);
+            mainThreadHandler.post(() -> callback.onComplete(id));
+        });
     }
 
-    public boolean isUserAdmin(String email) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {"isAdmin"};
-        String selection = "email = ?";
-        String[] selectionArgs = {email};
-        try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
-            if (cursor.moveToFirst()) {
-                return cursor.getInt(cursor.getColumnIndexOrThrow("isAdmin")) == 1;
+    public void getQuestionsCountAsync(String courseType, DatabaseCallback<Integer> callback) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getReadableDatabase();
+            String query = "SELECT COUNT(*) FROM questions WHERE courseType = ?";
+            int count = 0;
+            try (Cursor cursor = db.rawQuery(query, new String[]{courseType})) {
+                if (cursor.moveToFirst()) count = cursor.getInt(0);
             }
-        }
-        return false;
+            final int finalCount = count;
+            mainThreadHandler.post(() -> callback.onComplete(finalCount));
+        });
+    }
+
+    public void getQuestionsByCourseAsync(String courseType, DatabaseCallback<List<Question>> callback) {
+        databaseExecutor.execute(() -> {
+            List<Question> list = new ArrayList<>();
+            SQLiteDatabase db = this.getReadableDatabase();
+            String query = "SELECT * FROM questions WHERE courseType = ?";
+            try (Cursor cursor = db.rawQuery(query, new String[]{courseType})) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Question q = new Question(
+                                cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("question")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option1")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option2")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option3")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option4")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
+                        );
+                        list.add(q);
+                    } while (cursor.moveToNext());
+                }
+            }
+            mainThreadHandler.post(() -> callback.onComplete(list));
+        });
+    }
+
+    public void getAllQuestionsAsync(DatabaseCallback<List<Question>> callback) {
+        databaseExecutor.execute(() -> {
+            List<Question> list = new ArrayList<>();
+            SQLiteDatabase db = this.getReadableDatabase();
+            try (Cursor cursor = db.rawQuery("SELECT * FROM questions", null)) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Question q = new Question(
+                                cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("question")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option1")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option2")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option3")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option4")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
+                        );
+                        list.add(q);
+                    } while (cursor.moveToNext());
+                }
+            }
+            mainThreadHandler.post(() -> callback.onComplete(list));
+        });
+    }
+
+    public void insertQuestionAsync(Question question, DatabaseCallback<Void> callback) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("question", question.getQuestion());
+            values.put("option1", question.getOption1());
+            values.put("option2", question.getOption2());
+            values.put("option3", question.getOption3());
+            values.put("option4", question.getOption4());
+            values.put("correctAnswer", question.getCorrectAnswer());
+            values.put("description", question.getDescription());
+            values.put("courseType", question.getCourseType());
+            db.insert("questions", null, values);
+            mainThreadHandler.post(() -> callback.onComplete(null));
+        });
+    }
+
+    public void checkUserAsync(String email, String password, DatabaseCallback<Boolean> callback) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getReadableDatabase();
+            boolean exists = false;
+            try (Cursor cursor = db.query("registration", new String[]{"id"}, "email = ? AND password = ?", new String[]{email, password}, null, null, null)) {
+                exists = cursor.getCount() > 0;
+            }
+            final boolean finalResult = exists;
+            mainThreadHandler.post(() -> callback.onComplete(finalResult));
+        });
+    }
+
+    public void isUserAdminAsync(String email, DatabaseCallback<Boolean> callback) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getReadableDatabase();
+            boolean isAdmin = false;
+            try (Cursor cursor = db.query("registration", new String[]{"isAdmin"}, "email = ?", new String[]{email}, null, null, null)) {
+                if (cursor.moveToFirst()) isAdmin = cursor.getInt(0) == 1;
+            }
+            final boolean finalResult = isAdmin;
+            mainThreadHandler.post(() -> callback.onComplete(finalResult));
+        });
+    }
+
+    public void getUserFirstNameAsync(String email, DatabaseCallback<String> callback) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getReadableDatabase();
+            String name = null;
+            try (Cursor cursor = db.query("registration", new String[]{"fname"}, "email = ?", new String[]{email}, null, null, null)) {
+                if (cursor.moveToFirst()) name = cursor.getString(0);
+            }
+            final String finalResult = name;
+            mainThreadHandler.post(() -> callback.onComplete(finalResult));
+        });
+    }
+
+    public void getUserProfileAsync(String email, DatabaseCallback<User> callback) {
+        databaseExecutor.execute(() -> {
+            User user = getUserProfile(email);
+            mainThreadHandler.post(() -> callback.onComplete(user));
+        });
     }
 
     public User getUserProfile(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {"fname", "lname", "email", "total_score", "answered_questions", "missed_questions", "profile_image_path"};
-        String selection = "email = ?";
-        String[] selectionArgs = {email};
-        try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
+        try (Cursor cursor = db.query("registration", null, "email = ?", new String[]{email}, null, null, null)) {
             if (cursor.moveToFirst()) {
                 return new User(
                         cursor.getString(cursor.getColumnIndexOrThrow("fname")),
@@ -213,107 +277,76 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         return null;
     }
 
-    public String getUserFirstName(String email) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        String[] columns = {"fname"};
-        String selection = "email = ?";
-        String[] selectionArgs = {email};
-        try (Cursor cursor = db.query("registration", columns, selection, selectionArgs, null, null, null)) {
-            if (cursor.moveToFirst()) {
-                return cursor.getString(cursor.getColumnIndexOrThrow("fname"));
-            }
-        }
-        return null;
-    }
-
-    public void updateUserStats(String email, int score, int answered, int missed) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("total_score", score);
-        values.put("answered_questions", answered);
-        values.put("missed_questions", missed);
-        String selection = "email = ?";
-        String[] selectionArgs = {email};
-        db.update("registration", values, selection, selectionArgs);
-    }
-
-    public void insertQuestion(Question question) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put("question", question.getQuestion());
-        values.put("option1", question.getOption1());
-        values.put("option2", question.getOption2());
-        values.put("option3", question.getOption3());
-        values.put("option4", question.getOption4());
-        values.put("correctAnswer", question.getCorrectAnswer());
-        values.put("description", question.getDescription());
-        values.put("courseType", question.getCourseType());
-        db.insert("questions", null, values);
-    }
-
-    public List<Question> getAllQuestions() {
-        List<Question> questions = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        try (Cursor cursor = db.rawQuery("SELECT * FROM questions", null)) {
-            if (cursor.moveToFirst()) {
-                do {
-                    Question question = new Question(
-                            cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("question")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option1")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option2")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option3")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option4")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
-                    );
-                    questions.add(question);
-                } while (cursor.moveToNext());
-            }
-        }
-        return questions;
-    }
-
-    public void getAllQuestionsAsync(DatabaseCallback<List<Question>> callback) {
-        Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+    public void updateUserStatsAsync(String email, int score, int answered, int missed) {
         databaseExecutor.execute(() -> {
-            List<Question> questions = getAllQuestions();
-            mainThreadHandler.post(() -> callback.onComplete(questions));
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("total_score", score);
+            values.put("answered_questions", answered);
+            values.put("missed_questions", missed);
+            db.update("registration", values, "email = ?", new String[]{email});
         });
     }
 
-    public List<Question> getQuestionsByCourse(String courseType) {
-        List<Question> questions = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String selection = "courseType = ?";
-        String[] selectionArgs = {courseType};
-        try (Cursor cursor = db.query("questions", null, selection, selectionArgs, null, null, null)) {
-            if (cursor.moveToFirst()) {
-                do {
-                    Question question = new Question(
-                            cursor.getInt(cursor.getColumnIndexOrThrow("id")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("question")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option1")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option2")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option3")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("option4")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("description")),
-                            cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
-                    );
-                    questions.add(question);
-                } while (cursor.moveToNext());
-            }
-        }
-        return questions;
+    public void saveUserAnswerAsync(String email, int qId, String answer, boolean isCorrect) {
+        databaseExecutor.execute(() -> {
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("user_email", email);
+            values.put("question_id", qId);
+            values.put("selected_answer", answer);
+            values.put("is_correct", isCorrect ? 1 : 0);
+            db.insertWithOnConflict("user_answered_questions", null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        });
     }
 
-    public void getQuestionsByCourseAsync(String courseType, DatabaseCallback<List<Question>> callback) {
-        Handler mainThreadHandler = new Handler(Looper.getMainLooper());
+    public void insertUserAsync(String fname, String lname, String email, String password, DatabaseCallback<Long> callback) {
         databaseExecutor.execute(() -> {
-            List<Question> questions = getQuestionsByCourse(courseType);
-            mainThreadHandler.post(() -> callback.onComplete(questions));
+            SQLiteDatabase db = this.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put("fname", fname);
+            values.put("lname", lname);
+            values.put("email", email);
+            values.put("password", password);
+            long id = db.insert("registration", null, values);
+            mainThreadHandler.post(() -> callback.onComplete(id));
+        });
+    }
+    public void getAnsweredQuestionsAsync(String userEmail, boolean isCorrect, DatabaseCallback<List<AnsweredQuestion>> callback) {
+        databaseExecutor.execute(() -> {
+            List<AnsweredQuestion> list = new ArrayList<>();
+            SQLiteDatabase db = this.getReadableDatabase();
+
+            // Query joining questions and user_answered_questions to get full question details
+            String query = "SELECT q.*, ua.selected_answer, ua.is_correct " +
+                    "FROM questions q " +
+                    "JOIN user_answered_questions ua ON q.id = ua.question_id " +
+                    "WHERE ua.user_email = ? AND ua.is_correct = ?";
+
+            String[] selectionArgs = {userEmail, isCorrect ? "1" : "0"};
+
+            try (Cursor cursor = db.rawQuery(query, selectionArgs)) {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Question question = new Question(
+                                cursor.getInt(cursor.getColumnIndexOrThrow("id")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("question")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option1")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option2")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option3")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("option4")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("correctAnswer")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("description")),
+                                cursor.getString(cursor.getColumnIndexOrThrow("courseType"))
+                        );
+                        String selectedAnswer = cursor.getString(cursor.getColumnIndexOrThrow("selected_answer"));
+                        boolean correct = cursor.getInt(cursor.getColumnIndexOrThrow("is_correct")) == 1;
+
+                        list.add(new AnsweredQuestion(question, selectedAnswer, correct));
+                    } while (cursor.moveToNext());
+                }
+            }
+            mainThreadHandler.post(() -> callback.onComplete(list));
         });
     }
 }

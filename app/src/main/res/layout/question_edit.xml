@@ -21,10 +21,10 @@
             android:textSize="22dp"
             android:padding="10dp"
             android:textColor="@color/main"
-            android:textColorHint="@color/main"
+            android:textColorHint="@android:color/darker_gray"
             android:hint="Question"
             android:textStyle="bold"
-            android:background="@color/transparent"/>
+            android:background="@android:color/transparent"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -80,28 +80,32 @@
                     android:layout_width="wrap_content"
                     android:textSize="20sp"
                     android:paddingVertical="10dp"
-                    android:textColor="@color/black"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@android:color/darker_gray"
                     android:hint="Choice1"
                     android:layout_height="wrap_content"/>
                 <EditText
                     android:layout_width="wrap_content"
                     android:textSize="20sp"
                     android:paddingVertical="10dp"
-                    android:textColor="@color/black"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@android:color/darker_gray"
                     android:hint="Choice2"
                     android:layout_height="wrap_content"/>
                 <EditText
                     android:layout_width="wrap_content"
                     android:textSize="20sp"
                     android:paddingVertical="10dp"
-                    android:textColor="@color/black"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@android:color/darker_gray"
                     android:hint="Choice3"
                     android:layout_height="wrap_content"/>
                 <EditText
                     android:layout_width="wrap_content"
                     android:textSize="20sp"
                     android:paddingVertical="10dp"
-                    android:textColor="@color/black"
+                    android:textColor="@android:color/black"
+                    android:textColorHint="@android:color/darker_gray"
                     android:hint="Choice4"
                     android:layout_height="wrap_content"/>
             </LinearLayout>

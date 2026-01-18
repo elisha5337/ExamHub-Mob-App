@@ -13,11 +13,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="start"
-    android:textSize="22sp"
-    android:textColor="@color/main"
-    android:padding="10dp"
-    android:text="@string/question_placeholder"
-    android:textStyle="bold"/>
+        android:textSize="22sp"
+        android:textColor="@color/main"
+        android:padding="10dp"
+        android:text="@string/question_placeholder"
+        android:textStyle="bold"/>
 
     <RadioGroup
         android:layout_width="match_parent"
@@ -29,10 +29,10 @@
             android:layout_height="wrap_content"
             android:textSize="20sp"
             android:padding="10dp"
-            android:textColor="@color/black"
+            android:textColor="@android:color/black"
             android:buttonTint="@color/main"
             android:text="@string/option1_placeholder"
-        android:contentDescription="@string/option1_desc"/>
+            android:contentDescription="@string/option1_desc"/>
 
         <RadioButton
             android:id="@+id/option2"
@@ -40,10 +40,10 @@
             android:layout_height="wrap_content"
             android:textSize="20sp"
             android:padding="10dp"
-            android:textColor="@color/black"
+            android:textColor="@android:color/black"
             android:buttonTint="@color/main"
             android:text="@string/option2_placeholder"
-        android:contentDescription="@string/option2_desc"/> <!-- Content description -->
+            android:contentDescription="@string/option2_desc"/>
 
         <RadioButton
             android:id="@+id/option3"
@@ -51,10 +51,10 @@
             android:layout_height="wrap_content"
             android:textSize="20sp"
             android:padding="10dp"
-            android:textColor="@color/black"
+            android:textColor="@android:color/black"
             android:buttonTint="@color/main"
             android:text="@string/option3_placeholder"
-        android:contentDescription="@string/option3_desc"/> <!-- Content description -->
+            android:contentDescription="@string/option3_desc"/>
 
         <RadioButton
             android:id="@+id/option4"
@@ -62,11 +62,11 @@
             android:layout_height="wrap_content"
             android:textSize="20sp"
             android:padding="10dp"
-            android:textColor="@color/black"
+            android:textColor="@android:color/black"
             android:buttonTint="@color/main"
             android:text="@string/option4_placeholder"
-        android:layout_marginBottom="7dp"
-        android:contentDescription="@string/option4_desc"/> <!-- Content description -->
+            android:layout_marginBottom="7dp"
+            android:contentDescription="@string/option4_desc"/>
     </RadioGroup>
 
     <TextView
@@ -78,7 +78,7 @@
         android:textColor="@color/green_dark"
         android:background="@drawable/green_background"
         android:text="@string/correct_answer_placeholder"
-    android:textStyle="bold"
-    android:gravity="center"
-    android:visibility="gone"/>
+        android:textStyle="bold"
+        android:gravity="center"
+        android:visibility="gone"/>
 </LinearLayout>

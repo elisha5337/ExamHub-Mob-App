@@ -20,6 +20,9 @@
         <receiver android:name=".NotificationReceiver" android:exported="false" />
 
         <activity
+            android:name=".SettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".QuestionListActivity"
             android:exported="false" />
         <activity

@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,16 +18,6 @@ public class LoginActivity extends AppCompatActivity {
     private Button loginButton;
     private TextView createAccountTextView;
     private MyDatabaseHelper dbHelper;
-     private int[] images={
-            R.drawable.jesus,
-            R.drawable.marek,
-            R.drawable.building,
-            R.drawable.samsung
-    };
-    private int index=0;
-
-    // Corrected to 30 minutes (30 * 60 * 1000L)
-    private static final long SESSION_EXPIRATION_TIME = 30 * 60 * 1000L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,19 +28,11 @@ public class LoginActivity extends AppCompatActivity {
 
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
-        ImageView image=findViewById(R.id.image);
         loginButton = findViewById(R.id.loginButton);
         createAccountTextView = findViewById(R.id.create_account);
 
         loginButton.setOnClickListener(v -> loginUser());
         createAccountTextView.setOnClickListener(v -> navigateToSignup());
-        image.setOnClickListener(v->{
-            index++;
-            if(index>=images.length){
-                index=0;
-            }
-            image.setImageResource(images[index]);
-        });
     }
 
     private void loginUser() {
@@ -68,24 +49,26 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        if (dbHelper.checkUser(email, password)) {
-            String firstName = dbHelper.getUserFirstName(email);
-            boolean isAdmin = dbHelper.isUserAdmin(email);
+        dbHelper.checkUserAsync(email, password, userExists -> {
+            if (userExists) {
+                dbHelper.getUserFirstNameAsync(email, firstName -> {
+                    dbHelper.isUserAdminAsync(email, isAdmin -> {
+                        SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean("is_logged_in", true);
+                        editor.putString("first_name", firstName);
+                        editor.putString("email", email);
+                        editor.putBoolean("is_admin", isAdmin);
+                        editor.putLong("login_timestamp", System.currentTimeMillis());
+                        editor.apply();
 
-            // Save session
-            SharedPreferences sharedPreferences = getSharedPreferences("user_session", MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("is_logged_in", true);
-            editor.putString("first_name", firstName);
-            editor.putString("email", email);
-            editor.putBoolean("is_admin", isAdmin);
-            editor.putLong("login_timestamp", System.currentTimeMillis()); // Save the login timestamp
-            editor.apply();
-
-            navigateToHome();
-        } else {
-            Toast.makeText(LoginActivity.this, "Login failed. Invalid email or password.", Toast.LENGTH_SHORT).show();
-        }
+                        navigateToHome();
+                    });
+                });
+            } else {
+                Toast.makeText(LoginActivity.this, "Login failed. Invalid email or password.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void navigateToHome() {
